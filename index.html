@@ -33,7 +33,7 @@
         
         .period-bar { background: var(--white); padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-wrap: wrap; }
         .period-bar label { font-weight: bold; font-size: 14px; } .period-bar select, .period-bar input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-        .period-actions { margin-right: auto; display: flex; gap: 10px; align-items: center; }
+        .period-actions { margin-right: auto; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         .user-badge { background: var(--bg); padding: 5px 10px; border-radius: 20px; font-size: 12px; color: var(--primary); font-weight: bold; }
         
         .card { background: var(--white); padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
@@ -80,17 +80,19 @@
 </head>
 <body>
 
+    <!-- LOGIN SCREEN -->
     <div id="loginScreen">
         <div class="login-card">
             <h2>نتائج أعمال مؤسسة زاد الجود<br>للوجبات السريعة</h2>
             <p>يرجى تسجيل الدخول للوصول إلى النظام المحاسبي</p>
             <input type="text" id="loginUser" placeholder="اسم المستخدم">
             <input type="password" id="loginPass" placeholder="كلمة المرور">
-            <button id="loginBtn" onclick="window.doLogin()">تسجيل الدخول</button>
+            <button onclick="window.doLogin()">تسجيل الدخول</button>
             <div id="loginError" class="login-error">اسم المستخدم أو كلمة المرور غير صحيحة</div>
         </div>
     </div>
 
+    <!-- MAIN APPLICATION -->
     <div id="appContainer" class="role-admin">
         <div class="sidebar">
             <h2>نتائج أعمال مؤسسة زاد الجود<br>للوجبات السريعة</h2>
@@ -113,6 +115,10 @@
                 <div class="period-actions">
                     <button class="btn btn-primary btn-save" onclick="window.loadPeriodData()">🔄 تحميل</button>
                     <button class="btn btn-success btn-save" onclick="window.savePeriodData()">💾 حفظ</button>
+                    <!-- Excel Import/Export Buttons -->
+                    <button class="btn btn-warning" onclick="window.downloadTemplate()">📥 قالب Excel</button>
+                    <input type="file" id="excelUpload" style="display: none;" accept=".xlsx, .xls" onchange="window.uploadExcel(event)">
+                    <button class="btn btn-warning btn-save" onclick="document.getElementById('excelUpload').click()">📤 رفع Excel</button>
                 </div>
                 <div id="loadingMsg" class="loading">جاري الاتصال...</div>
             </div>
@@ -238,84 +244,27 @@
 
         let currentSession = JSON.parse(sessionStorage.getItem('zad_session')) || null;
 
-        // --- Robust Login Logic ---
         async function doLogin() {
-            const username = document.getElementById('loginUser').value;
-            const password = document.getElementById('loginPass').value;
-            if(!username || !password) { alert("الرجاء إدخال البيانات"); return; }
-            
-            document.getElementById('loginError').style.display = 'none';
-            document.getElementById('loginBtn').innerText = 'جاري التحقق...';
-
+            const username = document.getElementById('loginUser').value; const password = document.getElementById('loginPass').value;
+            if(!username || !password) return;
+            document.getElementById('loginError').style.display = 'none'; document.getElementById('loginBtn').innerText = 'جاري التحقق...';
             try {
-                // If it's the first time ever, create the admin account on the fly
-                if(username === 'admin') {
-                    const adminDoc = await getDoc(doc(db, "app_users", "admin"));
-                    if(!adminDoc.exists()) {
-                        await setDoc(doc(db, "app_users", "admin"), { password: "admin123", role: "admin" });
-                    }
-                }
-
+                if(username === 'admin') { const adminDoc = await getDoc(doc(db, "app_users", "admin")); if(!adminDoc.exists()) { await setDoc(doc(db, "app_users", "admin"), { password: "admin123", role: "admin" }); } }
                 const userDoc = await getDoc(doc(db, "app_users", username));
-                if (userDoc.exists() && userDoc.data().password === password) {
-                    currentSession = { user: username, role: userDoc.data().role };
-                    sessionStorage.setItem('zad_session', JSON.stringify(currentSession));
-                    startApp();
-                } else {
-                    document.getElementById('loginError').style.display = 'block';
-                }
-            } catch(e) {
-                console.error("Login Error:", e);
-                alert("خطأ في الاتصال بقاعدة البيانات! تأكد من اتصالك بالإنترنت وأنك قمت بتفعيل Firestore في Firebase.");
-            } finally {
-                document.getElementById('loginBtn').innerText = 'تسجيل الدخول';
-            }
+                if (userDoc.exists() && userDoc.data().password === password) { currentSession = { user: username, role: userDoc.data().role }; sessionStorage.setItem('zad_session', JSON.stringify(currentSession)); startApp(); } else { document.getElementById('loginError').style.display = 'block'; }
+            } catch(e) { alert("خطأ في الاتصال بـ Firebase"); } finally { document.getElementById('loginBtn').innerText = 'تسجيل الدخول'; }
         }
-
-        function doLogout() {
-            sessionStorage.removeItem('zad_session'); currentSession = null;
-            document.getElementById('appContainer').style.display = 'none'; document.getElementById('loginScreen').style.display = 'flex';
-        }
-
-        function startApp() {
-            try {
-                if (!currentSession) return;
-                document.getElementById('loginScreen').style.display = 'none'; document.getElementById('appContainer').style.display = 'flex';
-                document.getElementById('appContainer').className = `role-${currentSession.role}`;
-                document.getElementById('currentUserDisplay').innerText = `مرحباً، ${currentSession.user}`;
-                loadUsersTable(); calculateLocal();
-            } catch(e) { console.error("Start App Error:", e); }
-        }
-
-        async function loadUsersTable() {
-            const tbody = document.getElementById('usersTableBody'); tbody.innerHTML = '';
-            try {
-                const querySnapshot = await getDocs(collection(db, "app_users"));
-                querySnapshot.forEach((d) => {
-                    const u = d.data(); const roleName = u.role === 'admin' ? 'مدير' : u.role === 'accountant' ? 'محاسب' : 'مشاهد';
-                    const delBtn = d.id === 'admin' ? '' : `<button class="btn btn-danger btn-small btn-del" onclick="window.deleteUser('${d.id}')">حذف</button>`;
-                    tbody.innerHTML += `<tr><td>${d.id}</td><td>${roleName}</td><td>${delBtn}</td></tr>`;
-                });
-            } catch(e) { console.error(e); }
-        }
-
-        async function addUser() {
-            const name = document.getElementById('newUserName').value; const pass = document.getElementById('newUserPass').value; const role = document.getElementById('newUserRole').value;
-            if(!name || !pass) { alert('أدخل الاسم والرقم'); return; }
-            try { await setDoc(doc(db, "app_users", name), { password: pass, role: role }); document.getElementById('newUserName').value = ''; document.getElementById('newUserPass').value = ''; loadUsersTable(); } catch(e) { alert('خطأ'); }
-        }
-
-        async function deleteUser(username) {
-            if(confirm(`حذف ${username}؟`)) { try { await deleteDoc(doc(db, "app_users", username)); loadUsersTable(); } catch(e) { alert('خطأ'); } }
-        }
+        function doLogout() { sessionStorage.removeItem('zad_session'); currentSession = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('loginScreen').style.display = 'flex'; }
+        function startApp() { if (!currentSession) return; document.getElementById('loginScreen').style.display = 'none'; document.getElementById('appContainer').style.display = 'flex'; document.getElementById('appContainer').className = `role-${currentSession.role}`; document.getElementById('currentUserDisplay').innerText = `مرحباً، ${currentSession.user}`; loadUsersTable(); calculateLocal(); }
+        async function loadUsersTable() { const tbody = document.getElementById('usersTableBody'); tbody.innerHTML = ''; try { const q = await getDocs(collection(db, "app_users")); q.forEach((d) => { const u = d.data(); const roleName = u.role === 'admin' ? 'مدير' : u.role === 'accountant' ? 'محاسب' : 'مشاهد'; const delBtn = d.id === 'admin' ? '' : `<button class="btn btn-danger btn-small btn-del" onclick="window.deleteUser('${d.id}')">حذف</button>`; tbody.innerHTML += `<tr><td>${d.id}</td><td>${roleName}</td><td>${delBtn}</td></tr>`; }); } catch(e) {} }
+        async function addUser() { const name = document.getElementById('newUserName').value; const pass = document.getElementById('newUserPass').value; const role = document.getElementById('newUserRole').value; if(!name || !pass) { alert('أدخل الاسم والرقم'); return; } try { await setDoc(doc(db, "app_users", name), { password: pass, role: role }); document.getElementById('newUserName').value = ''; document.getElementById('newUserPass').value = ''; loadUsersTable(); } catch(e) { alert('خطأ'); } }
+        async function deleteUser(username) { if(confirm(`حذف ${username}؟`)) { try { await deleteDoc(doc(db, "app_users", username)); loadUsersTable(); } catch(e) { alert('خطأ'); } } }
 
         async function fetchDataFromCloud(key) { try { const docRef = doc(db, "financial_periods", key); const docSnap = await getDoc(docRef); return docSnap.exists() ? docSnap.data() : null; } catch(e) { return null; } }
-
         function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); document.getElementById(id).classList.add('active'); event.currentTarget.classList.add('active'); calculateLocal(); }
         function updatePeriodNumbers(typeId, numId) { typeId = typeId || 'selPeriodType'; numId = numId || 'selPeriodNum'; const t = document.getElementById(typeId).value; const n = document.getElementById(numId); n.innerHTML = ''; let c = t==='Y'?1:t==='H'?2:t==='Q'?4:12; for(let i=1;i<=c;i++) n.innerHTML+=`<option value="${i}">${i}</option>`; }
         function getKey(y,t,n) { return `ZAD_${y}_${t}_${n}`; }
         function getCurrentKey() { return getKey(document.getElementById('selYear').value, document.getElementById('selPeriodType').value, document.getElementById('selPeriodNum').value); }
-        
         function populateYearDropdowns() { const cy = new Date().getFullYear(); const sy = cy - 5; const ey = cy + 10; const ids = ['selYear', 'baseYear', 'c1Year', 'c2Year', 'c3Year', 'repYear']; ids.forEach(id => { const s = document.getElementById(id); if(!s) return; s.innerHTML=''; for(let y=ey;y>=sy;y--) { const o = document.createElement('option'); o.value=y; o.text=y; if((id==='selYear'||id==='baseYear'||id==='repYear')&&y===cy) o.selected=true; else if(id==='c1Year'&&y===cy-1) o.selected=true; else if(id==='c2Year'&&y===cy-2) o.selected=true; else if(id==='c3Year'&&y===cy-3) o.selected=true; s.appendChild(o); } }); }
 
         function addRow(tableId, type='none', isNonCashChecked=false, name="", amount=0, assetTypeVal='other') { const tbody = document.getElementById(tableId).querySelector('tbody'); const tr = document.createElement('tr'); let cells = `<td><input type="text" style="width:100%" value="${name}"></td><td><input type="number" style="width:100%" value="${amount}" onchange="window.calculateLocal()"></td>`; if(type==='noncash') cells += `<td class="checkbox-group"><input type="checkbox" onchange="window.calculateLocal()" ${isNonCashChecked?'checked':''}> غير نقدي</td>`; else if(type==='asset') cells += `<td><select onchange="window.calculateLocal()"><option value="other" ${assetTypeVal==='other'?'selected':''}>أخرى</option><option value="fixed" ${assetTypeVal==='fixed'?'selected':''}>ثابتة</option><option value="acc_dep" ${assetTypeVal==='acc_dep'?'selected':''}>مجمع إهلاك</option><option value="intan" ${assetTypeVal==='intan'?'selected':''}>غير ملموسة</option><option value="acc_amort" ${assetTypeVal==='acc_amort'?'selected':''}>مجمع إطفاء</option></select></td>`; cells += `<td><button class="btn btn-danger btn-small btn-del" onclick="this.parentElement.parentElement.remove();window.calculateLocal()">حذف</button></td>`; tr.innerHTML = cells; tbody.appendChild(tr); }
@@ -326,36 +275,133 @@
 
         function getFinancialSummary(data) { if(!data || !data.inc) return null; const sum = (arr) => arr.reduce((a,b)=>a+(b.amount||0),0); const sumNC = (arr) => arr.reduce((a,b)=>a+(b.isNonCash?(b.amount||0):0),0); const rev=sum(data.inc.rev), cogs=sum(data.inc.cogs), gp=rev-cogs, opex=sum(data.inc.opex), ebitda=gp-opex, dep=sum(data.inc.dep), ebit=ebitda-dep, tax=sum(data.inc.tax), np=ebit-tax; const totalNonCash = sumNC(data.inc.rev)+sumNC(data.inc.cogs)+sumNC(data.inc.opex)+sumNC(data.inc.dep)+sumNC(data.inc.tax); const ca=sum(data.bal.ca); let fixed=0, accDep=0, intan=0, accAmort=0, otherNca=0; data.bal.nca.forEach(i => { if(i.assetType==='fixed') fixed+=i.amount; else if(i.assetType==='acc_dep') accDep+=i.amount; else if(i.assetType==='intan') intan+=i.amount; else if(i.assetType==='acc_amort') accAmort+=i.amount; else otherNca+=i.amount; }); const tnca=(fixed-accDep)+(intan-accAmort)+otherNca, ta=ca+tnca, tl=sum(data.bal.liab), teq=sum(data.bal.eq), tle=tl+teq; const cfOp=np+totalNonCash+sum(data.cf.op), cfInv=sum(data.cf.inv), cfFin=sum(data.cf.fin), cfNet=cfOp+cfInv+cfFin, cfEnd=data.cf.beg+cfNet; return { rev, cogs, gp, opex, ebitda, dep, ebit, tax, np, ca, tnca, ta, tl, teq, tle, cfOp, cfInv, cfFin, cfNet, cfEnd }; }
 
-        async function savePeriodData() { if(currentSession.role === 'viewer') return; loadingMsg.style.display = 'block'; const key = getCurrentKey(); const data = { inc: { rev: getTableData('tbl_rev','noncash'), cogs: getTableData('tbl_cogs','noncash'), opex: getTableData('tbl_opex','noncash'), dep: getTableData('tbl_dep','noncash'), tax: getTableData('tbl_tax','noncash') }, bal: { ca: getTableData('tbl_ca','none'), nca: getTableData('tbl_nca','asset'), liab: getTableData('tbl_liab','none'), eq: getTableData('tbl_eq','none') }, cf: { op: getTableData('tbl_cf_op','none'), inv: getTableData('tbl_cf_inv','none'), fin: getTableData('tbl_cf_fin','none'), beg: parseFloat(document.getElementById('cf_beg').value)||0 } }; try { await setDoc(doc(db, "financial_periods", key), data); alert('تم الحفظ!'); } catch (e) { alert('خطأ في الحفظ.'); } loadingMsg.style.display = 'none'; }
+        async function savePeriodData() { if(currentSession.role === 'viewer') return; loadingMsg.style.display = 'block'; const key = getCurrentKey(); const data = { inc: { rev: getTableData('tbl_rev','noncash'), cogs: getTableData('tbl_cogs','noncash'), opex: getTableData('tbl_opex','noncash'), dep: getTableData('tbl_dep','noncash'), tax: getTableData('tbl_tax','noncash') }, bal: { ca: getTableData('tbl_ca','none'), nca: getTableData('tbl_nca','asset'), liab: getTableData('tbl_liab','none'), eq: getTableData('tbl_eq','none') }, cf: { op: getTableData('tbl_cf_op','none'), inv: getTableData('tbl_cf_inv','none'), fin: getTableData('tbl_cf_fin','none'), beg: parseFloat(document.getElementById('cf_beg').value)||0 } }; try { await setDoc(doc(db, "financial_periods", key), data); alert('تم الحفظ!'); } catch (e) { alert('خطأ.'); } loadingMsg.style.display = 'none'; }
         function zeroOutData(data) { let d = JSON.parse(JSON.stringify(data)); const zeroArr = (arr) => arr.forEach(i => i.amount=0); [d.inc.rev, d.inc.cogs, d.inc.opex, d.inc.dep, d.inc.tax, d.bal.ca, d.bal.nca, d.bal.liab, d.bal.eq, d.cf.op, d.cf.inv, d.cf.fin].forEach(zeroArr); d.cf.beg = 0; return d; }
         function getPrevKey() { let y=parseInt(document.getElementById('selYear').value), t=document.getElementById('selPeriodType').value, n=parseInt(document.getElementById('selPeriodNum').value); let pN=n-1, pY=y; if(pN===0){ pY=y-1; pN=t==='H'?2:t==='Q'?4:12; } return getKey(pY,t,pN); }
-
-        async function loadPeriodData() { loadingMsg.style.display = 'block'; const key = getCurrentKey(); try { let data = await fetchDataFromCloud(key); if(!data) { const prevKey = getPrevKey(); let prevData = await fetchDataFromCloud(prevKey); if(prevData) { if(confirm('لا توجد بيانات. استيراد الهيكل؟')) data=zeroOutData(prevData); else { loadingMsg.style.display = 'none'; return; } } else { alert('لا توجد بيانات.'); loadingMsg.style.display = 'none'; return; } } populateTable('tbl_rev',data.inc.rev,'noncash'); populateTable('tbl_cogs',data.inc.cogs,'noncash'); populateTable('tbl_opex',data.inc.opex,'noncash'); populateTable('tbl_dep',data.inc.dep,'noncash'); populateTable('tbl_tax',data.inc.tax,'noncash'); populateTable('tbl_ca',data.bal.ca,'none'); populateTable('tbl_nca',data.bal.nca,'asset'); populateTable('tbl_liab',data.bal.liab,'none'); populateTable('tbl_eq',data.bal.eq,'none'); populateTable('tbl_cf_op',data.cf.op,'none'); populateTable('tbl_cf_inv',data.cf.inv,'none'); populateTable('tbl_cf_fin',data.cf.fin,'none'); document.getElementById('cf_beg').value=data.cf.beg; calculateLocal(); } catch(e) { alert('خطأ.'); loadingMsg.style.display = 'none'; } }
+        async function loadPeriodData() { loadingMsg.style.display = 'block'; const key = getCurrentKey(); try { let data = await fetchDataFromCloud(key); if(!data) { const prevKey = getPrevKey(); let prevData = await fetchDataFromCloud(prevKey); if(prevData) { if(confirm('استيراد الهيكل؟')) data=zeroOutData(prevData); else { loadingMsg.style.display = 'none'; return; } } else { alert('لا بيانات.'); loadingMsg.style.display = 'none'; return; } } populateTable('tbl_rev',data.inc.rev,'noncash'); populateTable('tbl_cogs',data.inc.cogs,'noncash'); populateTable('tbl_opex',data.inc.opex,'noncash'); populateTable('tbl_dep',data.inc.dep,'noncash'); populateTable('tbl_tax',data.inc.tax,'noncash'); populateTable('tbl_ca',data.bal.ca,'none'); populateTable('tbl_nca',data.bal.nca,'asset'); populateTable('tbl_liab',data.bal.liab,'none'); populateTable('tbl_eq',data.bal.eq,'none'); populateTable('tbl_cf_op',data.cf.op,'none'); populateTable('tbl_cf_inv',data.cf.inv,'none'); populateTable('tbl_cf_fin',data.cf.fin,'none'); document.getElementById('cf_beg').value=data.cf.beg; calculateLocal(); } catch(e) { alert('خطأ.'); loadingMsg.style.display = 'none'; } }
 
         function calculateLocal() { const rev = sumTable('tbl_rev',true), cogs = sumTable('tbl_cogs',true), gp = rev.total-cogs.total, opex = sumTable('tbl_opex',true), ebitda = gp-opex.total, dep = sumTable('tbl_dep',true), ebit = ebitda-dep.total, tax = sumTable('tbl_tax',true), np = ebit-tax.total, totalNonCash = rev.nonCash+cogs.nonCash+opex.nonCash+dep.nonCash+tax.nonCash; document.getElementById('val_gp').innerText=fmt(gp); document.getElementById('val_ebitda').innerText=fmt(ebitda); document.getElementById('val_ebit').innerText=fmt(ebit); document.getElementById('val_np').innerText=fmt(np); const ca = sumTable('tbl_ca').total; let fixed=0, accDep=0, intan=0, accAmort=0, otherNca=0; document.getElementById('tbl_nca').querySelector('tbody').rows.forEach(r => { const val = parseFloat(r.cells[1].querySelector('input').value)||0; const type = r.cells[2].querySelector('select').value; if(type==='fixed') fixed+=val; else if(type==='acc_dep') accDep+=val; else if(type==='intan') intan+=val; else if(type==='acc_amort') accAmort+=val; else otherNca+=val; }); const netFixed=fixed-accDep, netIntan=intan-accAmort, tnca=netFixed+netIntan+otherNca, ta=ca+tnca, tl = sumTable('tbl_liab').total, teq = sumTable('tbl_eq').total, tle=tl+teq, diff=ta-tle; document.getElementById('val_tca').innerText=fmt(ca); document.getElementById('val_netfixed').innerText=fmt(netFixed); document.getElementById('val_netintan').innerText=fmt(netIntan); document.getElementById('val_tnca').innerText=fmt(tnca); document.getElementById('val_ta').innerText=fmt(ta); document.getElementById('val_tl').innerText=fmt(tl); document.getElementById('val_teq').innerText=fmt(teq); document.getElementById('val_tle').innerText=fmt(tle); document.getElementById('val_diff').innerText=fmt(diff); document.getElementById('balanceCheck').style.borderColor = diff===0?"var(--success)":"var(--danger)"; document.getElementById('cf_np').innerText=fmt(np); document.getElementById('cf_noncash').innerText=fmt(totalNonCash); const cfOp = np+totalNonCash+sumTable('tbl_cf_op').total, cfInv = sumTable('tbl_cf_inv').total, cfFin = sumTable('tbl_cf_fin').total, cfNet = cfOp+cfInv+cfFin, cfBeg = parseFloat(document.getElementById('cf_beg').value)||0, cfEnd = cfBeg+cfNet; document.getElementById('val_cf_op').innerText=fmt(cfOp); document.getElementById('val_cf_inv').innerText=fmt(cfInv); document.getElementById('val_cf_fin').innerText=fmt(cfFin); document.getElementById('val_cf_net').innerText=fmt(cfNet); document.getElementById('val_cf_end').innerText=fmt(cfEnd); document.getElementById('d_rev').innerText=fmt(rev.total); document.getElementById('d_prof').innerText=fmt(np); document.getElementById('d_cash').innerText=fmt(cfEnd); renderVerticalAnalysis(rev.total, gp, opex.total, np); renderRatios(rev.total, np, ca, tl, tle, ta, teq); analyzeItems(); updateDashboardCharts(rev.total, np, cfEnd, cfOp, cfInv, cfFin); }
 
-        async function updateDashboardCharts(curRev, curProf, curCash, curCfOp, curCfInv, curCfFin) { let y = parseInt(document.getElementById('selYear').value); let t = document.getElementById('selPeriodType').value; let n = document.getElementById('selPeriodNum').value; let d1 = await fetchDataFromCloud(getKey(y-1, t, n)); let d2 = await fetchDataFromCloud(getKey(y-2, t, n)); let d3 = await fetchDataFromCloud(getKey(y-3, t, n)); let s1 = d1 ? getFinancialSummary(d1) : null; let s2 = d2 ? getFinancialSummary(d2) : null; let s3 = d3 ? getFinancialSummary(d3) : null; function calcChg(elemId, curr, prev, yearLabel) { let elem = document.getElementById(elemId); if(prev && prev > 0) { let pct = ((curr - prev) / prev * 100).toFixed(1); let isUp = pct >= 0; elem.className = `change ${isUp ? 'up' : 'down'}`; elem.innerText = `${isUp ? '▲' : '▼'} ${Math.abs(pct)}% عن ${yearLabel}`; } else { elem.innerText = d1 ? `جديد مقارنة بـ ${yearLabel}` : '-'; } } calcChg('d_rev_chg', curRev, s1?.rev, y-1); calcChg('d_prof_chg', curProf, s1?.np, y-1); calcChg('d_cash_chg', curCash, s1?.cfEnd, y-1); if(window.chart1Obj) window.chart1Obj.destroy(); window.chart1Obj = new Chart(document.getElementById('chart1'), { type: 'bar', data: { labels: [y-3, y-2, y-1, y], datasets: [ { label: 'الإيرادات', data: [s3?.rev||0, s2?.rev||0, s1?.rev||0, curRev], backgroundColor: '#3b82f6' }, { label: 'الربح', data: [s3?.np||0, s2?.np||0, s1?.np||0, curProf], backgroundColor: '#10b981' } ] } }); if(window.chart2Obj) window.chart2Obj.destroy(); window.chart2Obj = new Chart(document.getElementById('chart2'), { type: 'bar', data: { labels: ['تشغيلية','استثمارية','تمويلية'], datasets:[{data:[curCfOp, curCfInv, curCfFin], backgroundColor:['#3b82f6','#8b5cf6','#ec4899']}] }, options:{plugins:{legend:{display:false}}} }); }
+        async function updateDashboardCharts(curRev, curProf, curCash, curCfOp, curCfInv, curCfFin) { let y = parseInt(document.getElementById('selYear').value); let t = document.getElementById('selPeriodType').value; let n = document.getElementById('selPeriodNum').value; let d1 = await fetchDataFromCloud(getKey(y-1, t, n)); let d2 = await fetchDataFromCloud(getKey(y-2, t, n)); let d3 = await fetchDataFromCloud(getKey(y-3, t, n)); let s1 = d1 ? getFinancialSummary(d1) : null; let s2 = d2 ? getFinancialSummary(d2) : null; let s3 = d3 ? getFinancialSummary(d3) : null; function calcChg(elemId, curr, prev, yearLabel) { let elem = document.getElementById(elemId); if(prev && prev > 0) { let pct = ((curr - prev) / prev * 100).toFixed(1); let isUp = pct >= 0; elem.className = `change ${isUp ? 'up' : 'down'}`; elem.innerText = `${isUp ? '▲' : '▼'} ${Math.abs(pct)}% عن ${yearLabel}`; } else { elem.innerText = d1 ? `جديد` : '-'; } } calcChg('d_rev_chg', curRev, s1?.rev, y-1); calcChg('d_prof_chg', curProf, s1?.np, y-1); calcChg('d_cash_chg', curCash, s1?.cfEnd, y-1); if(window.chart1Obj) window.chart1Obj.destroy(); window.chart1Obj = new Chart(document.getElementById('chart1'), { type: 'bar', data: { labels: [y-3, y-2, y-1, y], datasets: [ { label: 'الإيرادات', data: [s3?.rev||0, s2?.rev||0, s1?.rev||0, curRev], backgroundColor: '#3b82f6' }, { label: 'الربح', data: [s3?.np||0, s2?.np||0, s1?.np||0, curProf], backgroundColor: '#10b981' } ] } }); if(window.chart2Obj) window.chart2Obj.destroy(); window.chart2Obj = new Chart(document.getElementById('chart2'), { type: 'bar', data: { labels: ['تشغيلية','استثمارية','تمويلية'], datasets:[{data:[curCfOp, curCfInv, curCfFin], backgroundColor:['#3b82f6','#8b5cf6','#ec4899']}] }, options:{plugins:{legend:{display:false}}} }); }
 
         function analyzeItems() { let revItems = []; document.getElementById('tbl_rev').querySelector('tbody').rows.forEach(r => { let v = parseFloat(r.cells[1].querySelector('input').value)||0; if(v > 0) revItems.push({name: r.cells[0].querySelector('input').value, amount: v}); }); revItems.sort((a,b) => b.amount - a.amount); document.getElementById('topRevList').innerHTML = revItems.slice(0,3).map(i => `<li><span>${i.name}</span> <span style="font-weight:bold;color:var(--primary)">${fmt(i.amount)} ر.س</span></li>`).join('') || '<li>لا توجد</li>'; let costTables = ['tbl_cogs', 'tbl_opex', 'tbl_dep', 'tbl_tax']; let costItems = []; costTables.forEach(tid => { document.getElementById(tid).querySelector('tbody').rows.forEach(r => { let v = Math.abs(parseFloat(r.cells[1].querySelector('input').value)||0); if(v > 0) costItems.push({name: r.cells[0].querySelector('input').value, amount: v}); }); }); costItems.sort((a,b) => b.amount - a.amount); document.getElementById('topCostList').innerHTML = costItems.slice(0,3).map(i => `<li><span>${i.name}</span> <span style="font-weight:bold;color:var(--danger)">${fmt(i.amount)} ر.س</span></li>`).join('') || '<li>لا توجد</li>'; }
 
         function renderVerticalAnalysis(rev, gp, opex, np) { const vData = [{n:'الإيرادات',v:rev,p:100},{n:'مجمل الربح',v:gp,p:rev?gp/rev*100:0},{n:'المصاريف',v:opex,p:rev?opex/rev*100:0},{n:'صافي الربح',v:np,p:rev?np/rev*100:0}]; document.getElementById('anvBody').innerHTML = vData.map(d=>`<tr><td>${d.n}</td><td>${fmt(d.v)}</td><td>${d.p.toFixed(1)}%</td></tr>`).join(''); }
-        function renderRatios(rev, np, ca, tl, tle, ta, teq) { const currentRatio = tl?(ca/tl).toFixed(2):0; const debtRatio = ta?(tle/ta*100).toFixed(1):0; const roe = teq?(np/teq*100).toFixed(1):0; const netMargin = rev?(np/rev*100).toFixed(1):0; document.getElementById('ratiosBody').innerHTML = `<div class="mgmt-card"><h4>السيولة: ${currentRatio}</h4><p>${currentRatio>=1.5?'🟢 ممتاز':currentRatio>=1?'🟡 مقبول':'🔴 خطر'}</p></div><div class="mgmt-card"><h4>هامش الربح: ${netMargin}%</h4><p>من كل 100 ريال يتبقى ${netMargin}.</p></div><div class="mgmt-card"><h4>العائد على الملكية: ${roe}%</h4><p>كل 100 ريال عادت بـ ${roe}.</p></div><div class="mgmt-card"><h4>الديون: ${debtRatio}%</h4><p>${debtRatio>70?'🔴 عالي':'🟢 آمن'}.</p></div>`; }
+        function renderRatios(rev, np, ca, tl, tle, ta, teq) { const currentRatio = tl?(ca/tl).toFixed(2):0; const debtRatio = ta?(tle/ta*100).toFixed(1):0; const roe = teq?(np/teq*100).toFixed(1):0; const netMargin = rev?(np/rev*100).toFixed(1):0; document.getElementById('ratiosBody').innerHTML = `<div class="mgmt-card"><h4>السيولة: ${currentRatio}</h4><p>${currentRatio>=1.5?'🟢 ممتاز':currentRatio>=1?'🟡 مقبول':'🔴 خطر'}</p></div><div class="mgmt-card"><h4>هامش الربح: ${netMargin}%</h4><p>من كل 100 ريال يتبقى ${netMargin}.</p></div><div class="mgmt-card"><h4>العائد: ${roe}%</h4><p>كل 100 ريال عادت بـ ${roe}.</p></div><div class="mgmt-card"><h4>الديون: ${debtRatio}%</h4><p>${debtRatio>70?'🔴 عالي':'🟢 آمن'}.</p></div>`; }
 
         async function runHorizontalAnalysis() { loadingMsg.style.display = 'block'; const baseYear = document.getElementById('baseYear').value; const c1 = document.getElementById('c1Year').value; const c2 = document.getElementById('c2Year').value; const c3 = document.getElementById('c3Year').value; const pType = document.getElementById('selPeriodType').value; const pNum = document.getElementById('selPeriodNum').value; const base = getFinancialSummary(await fetchDataFromCloud(getKey(baseYear, pType, pNum))); const d1 = getFinancialSummary(await fetchDataFromCloud(getKey(c1, pType, pNum))); const d2 = getFinancialSummary(await fetchDataFromCloud(getKey(c2, pType, pNum))); const d3 = getFinancialSummary(await fetchDataFromCloud(getKey(c3, pType, pNum))); if(!base) { alert('لا بيانات!'); loadingMsg.style.display = 'none'; return; } document.getElementById('hTableHead').innerHTML = `<tr><th rowspan="2">البند</th><th rowspan="2">${baseYear}</th><th colspan="2">${d1?c1:'فارغ'}</th><th colspan="2">${d2?c2:'فارغ'}</th><th colspan="2">${d3?c3:'فارغ'}</th></tr><tr><th>المبلغ</th><th>%</th><th>المبلغ</th><th>%</th><th>المبلغ</th><th>%</th></tr>`; const rowsDef = [{name: 'الإيرادات', key: 'rev', isGood: true},{name: 'التكلفة', key: 'cogs', isGood: false},{name: 'مجمل الربح', key: 'gp', isGood: true},{name: 'المصاريف', key: 'opex', isGood: false},{name: 'صافي الربح', key: 'np', isGood: true},{name: 'الأصول', key: 'ta', isGood: true},{name: 'الالتزامات', key: 'tl', isGood: false},{name: 'الملكية', key: 'teq', isGood: true}]; let html = ''; rowsDef.forEach(row => { html += `<tr><td><strong>${row.name}</strong></td><td>${fmt(base[row.key])}</td>`; [d1, d2, d3].forEach(comp => { if(comp) { const diff = base[row.key] - comp[row.key]; const perc = comp[row.key] !== 0 ? (diff / Math.abs(comp[row.key])) * 100 : 0; const isGood = row.isGood ? diff >= 0 : diff <= 0; const colorClass = isGood ? 'change-pos' : 'change-neg'; const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '-'; html += `<td>${fmt(comp[row.key])}</td><td class="${colorClass}">${arrow} ${perc.toFixed(1)}%</td>`; } else { html += `<td>-</td><td>-</td>`; } }); html += `</tr>`; }); document.getElementById('anhBody').innerHTML = html; loadingMsg.style.display = 'none'; }
 
-        async function generateMgmtReport() { loadingMsg.style.display = 'block'; const y = document.getElementById('repYear').value; const t = document.getElementById('repType').value; const n = document.getElementById('repNum').value; const data = await fetchDataFromCloud(getKey(y,t,n)); if(!data) { document.getElementById('mgmtBody').innerHTML = '<div style="text-align:center; padding:30px; color:var(--danger);">لا بيانات!</div>'; loadingMsg.style.display = 'none'; return; } const s = getFinancialSummary(data); const netMargin = s.rev ? (s.np/s.rev*100).toFixed(1) : 0; const cashCoverage = s.opex > 0 ? (s.cfEnd / s.opex).toFixed(1) : 0; const debtRatio = s.ta ? (s.tl/s.ta*100).toFixed(1) : 0; const isProfit = s.np > 0; const isLiquid = s.cfEnd > s.opex; const isSafeDebt = s.tl < s.teq; const isOpsCashPositive = s.cfOp > 0; document.getElementById('mgmtBody').innerHTML = `<div class="mgmt-card"><h3><span class="traffic-light ${isProfit?'tl-green':'tl-red'}"></span> هل نحن نكسب؟</h3><p>مبيعات <strong>${fmt(s.rev)}</strong>. تبقى ربح <strong>${fmt(s.np)}</strong> (${netMargin}%).</p></div><div class="mgmt-card"><h3><span class="traffic-light ${isLiquid?'tl-green':'tl-yellow'}"></span> هل يوجد نقد؟</h3><p>النقدية <strong>${fmt(s.cfEnd)}</strong>. تكفي ${cashCoverage} فترات.</p></div><div class="mgmt-card"><h3><span class="traffic-light ${isSafeDebt?'tl-green':'tl-red'}"></span> هل الديون آمنة؟</h3><p>الديون ${debtRatio}% من الأصول. ${isSafeDebt ? 'آمن.' : 'خطر!'}</p></div><div class="mgmt-card"><h3><span class="traffic-light ${isOpsCashPositive?'tl-green':'tl-red'}"></span> أين الفلوس؟</h3><p>النقدية ${s.cfNet > 0 ? 'زادت' : 'انخفضت'} بـ <strong>${fmt(Math.abs(s.cfNet))}</strong>.</p></div>`; loadingMsg.style.display = 'none'; }
-
+        async function generateMgmtReport() { loadingMsg.style.display = 'block'; const y = document.getElementById('repYear').value; const t = document.getElementById('repType').value; const n = document.getElementById('repNum').value; const data = await fetchDataFromCloud(getKey(y,t,n)); if(!data) { document.getElementById('mgmtBody').innerHTML = '<div style="text-align:center; padding:30px; color:var(--danger);">لا بيانات!</div>'; loadingMsg.style.display = 'none'; return; } const s = getFinancialSummary(data); const netMargin = s.rev ? (s.np/s.rev*100).toFixed(1) : 0; const cashCoverage = s.opex > 0 ? (s.cfEnd / s.opex).toFixed(1) : 0; const debtRatio = s.ta ? (s.tl/s.ta*100).toFixed(1) : 0; document.getElementById('mgmtBody').innerHTML = `<div class="mgmt-card"><h3><span class="traffic-light ${s.np>0?'tl-green':'tl-red'}"></span> هل نكسب؟</h3><p>مبيعات <strong>${fmt(s.rev)}</strong>. تبقى ربح <strong>${fmt(s.np)}</strong> (${netMargin}%).</p></div><div class="mgmt-card"><h3><span class="traffic-light ${s.cfEnd>s.opex?'tl-green':'tl-yellow'}"></span> هل يوجد نقد؟</h3><p>النقدية <strong>${fmt(s.cfEnd)}</strong>. تكفي ${cashCoverage} فترات.</p></div><div class="mgmt-card"><h3><span class="traffic-light ${s.tl<s.teq?'tl-green':'tl-red'}"></span> هل الديون آمنة؟</h3><p>الديون ${debtRatio}% من الأصول. ${s.tl<s.teq ? 'آمن.' : 'خطر!'}</p></div><div class="mgmt-card"><h3><span class="traffic-light ${s.cfOp>0?'tl-green':'tl-red'}"></span> أين الفلوس؟</h3><p>النقدية ${s.cfNet > 0 ? 'زادت' : 'انخفضت'} بـ <strong>${fmt(Math.abs(s.cfNet))}</strong>.</p></div>`; loadingMsg.style.display = 'none'; }
         async function exportToExcel() { loadingMsg.style.display = 'block'; const y = document.getElementById('repYear').value; const t = document.getElementById('repType').value; const n = document.getElementById('repNum').value; const data = await fetchDataFromCloud(getKey(y,t,n)); if(!data) { alert('لا بيانات!'); loadingMsg.style.display = 'none'; return; } const s = getFinancialSummary(data); const repText = [["تقرير زاد الجود"], [], ["السؤال", "الإجابة"], ["هل نكسب؟", `ربح: ${fmt(s.np)}`], ["هل يوجد نقد؟", `نقدية: ${fmt(s.cfEnd)}`], ["هل الديون آمنة؟", `نسبة: ${s.ta?(s.tl/s.ta*100).toFixed(1):0}%`], ["أين الفلوس؟", `تدفقات: ${fmt(s.cfNet)}`]]; const ws = XLSX.utils.aoa_to_sheet(repText); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "التقرير"); XLSX.writeFile(wb, `تقرير_${y}.xlsx`); loadingMsg.style.display = 'none'; }
+
+        // ==========================================
+        // EXCEL TEMPLATE & IMPORT LOGIC (NEW)
+        // ==========================================
+        
+        function downloadTemplate() {
+            const headers = ["القائمة", "التصنيف الفرعي", "اسم البند", "المبلغ", "هل هو غير نقدي؟ (TRUE/FALSE)", "نوع الأصل (other/fixed/acc_dep/intan/acc_amort)"];
+            const examples = [
+                ["قائمة الدخل", "الإيرادات", "مبيعات المنتج A", 50000, "FALSE", ""],
+                ["قائمة الدخل", "تكلفة البضاعة المباعة", "تكلفة المواد الخام", 20000, "FALSE", ""],
+                ["قائمة الدخل", "التكاليف التشغيلية", "رواتب الموظفين", 10000, "FALSE", ""],
+                ["قائمة الدخل", "الإهلاك", "إهلاك المعدات", 2000, "TRUE", ""],
+                ["قائمة الدخل", "الفوائد والزكاة", "زكاة", 1000, "FALSE", ""],
+                ["المركز المالي", "الأصول المتداولة", "البنك", 30000, "", ""],
+                ["المركز المالي", "الأصول غير المتداولة", "مبنى الشركة", 100000, "", "fixed"],
+                ["المركز المالي", "الأصول غير المتداولة", "مجمع إهلاك المبنى", 5000, "", "acc_dep"],
+                ["المركز المالي", "الالتزامات", "موردين", 15000, "", ""],
+                ["المركز المالي", "حقوق الملكية", "رأس المال", 200000, "", ""],
+                ["التدفقات النقدية", "تشغيلية", "تحصيلات عملاء", 45000, "", ""],
+                ["التدفقات النقدية", "استثمارية", "شراء أجهزة", 5000, "", ""],
+                ["التدفقات النقدية", "تمويلية", "سداد قروض", 3000, "", ""],
+                ["التدفقات النقدية", "رصيد بداية الفترة", "رصيد البنك أول الفترة", 10000, "", ""]
+            ];
+            
+            const ws = XLSX.utils.aoa_to_sheet([headers, ...examples]);
+            ws['!cols'] = [{ wch: 20 }, { wch: 25 }, { wch: 30 }, { wch: 15 }, { wch: 30 }, { wch: 40 }];
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "قالب البيانات المالية");
+            XLSX.writeFile(wb, "قالب_بيانات_زاد_الجود.xlsx");
+        }
+
+        async function uploadExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            loadingMsg.style.display = 'block';
+            
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(sheet);
+
+                    let inc = { rev: [], cogs: [], opex: [], dep: [], tax: [] };
+                    let bal = { ca: [], nca: [], liab: [], eq: [] };
+                    let cf = { op: [], inv: [], fin: [], beg: 0 };
+
+                    rows.forEach(row => {
+                        const sheetName = row['القائمة'];
+                        const category = row['التصنيف الفرعي'];
+                        const name = row['اسم البند'];
+                        const amount = row['المبلغ'] || 0;
+                        const isNonCash = row['هل هو غير نقدي؟ (TRUE/FALSE)'] === true || row['هل هو غير نقدي؟ (TRUE/FALSE)'] === 'TRUE';
+                        const assetType = row['نوع الأصل (other/fixed/acc_dep/intan/acc_amort)'] || 'other';
+
+                        if (!name) return; // Skip empty rows
+
+                        const itemObj = { name, amount, isNonCash, assetType };
+
+                        // Distribute to the correct JSON array based on sheet/category
+                        if(sheetName === 'قائمة الدخل') {
+                            if(category === 'الإيرادات') inc.rev.push(itemObj);
+                            else if(category === 'تكلفة البضاعة المباعة') inc.cogs.push(itemObj);
+                            else if(category === 'التكاليف التشغيلية') inc.opex.push(itemObj);
+                            else if(category === 'الإهلاك') inc.dep.push(itemObj);
+                            else if(category === 'الفوائد والزكاة') inc.tax.push(itemObj);
+                        } 
+                        else if(sheetName === 'المركز المالي') {
+                            if(category === 'الأصول المتداولة') bal.ca.push(itemObj);
+                            else if(category === 'الأصول غير المتداولة') bal.nca.push(itemObj);
+                            else if(category === 'الالتزامات') bal.liab.push(itemObj);
+                            else if(category === 'حقوق الملكية') bal.eq.push(itemObj);
+                        }
+                        else if(sheetName === 'التدفقات النقدية') {
+                            if(category === 'رصيد بداية الفترة') cf.beg = amount;
+                            else if(category === 'تشغيلية') cf.op.push({name, amount});
+                            else if(category === 'استثمارية') cf.inv.push({name, amount});
+                            else if(category === 'تمويلية') cf.fin.push({name, amount});
+                        }
+                    });
+
+                    const finalData = { inc, bal, cf };
+                    const key = getCurrentKey();
+                    await setDoc(doc(db, "financial_periods", key), finalData);
+                    
+                    // Refresh UI
+                    await loadPeriodData();
+                    alert('تم رفع ملف Excel وتحديث البيانات بنجاح!');
+
+                } catch (err) {
+                    console.error(err);
+                    alert('حدث خطأ أثناء قراءة الملف. تأكد من استخدام القالب المخصص للنظام.');
+                } finally {
+                    loadingMsg.style.display = 'none';
+                    event.target.value = ''; // reset input
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
 
         // Global Scope Assignment
         window.showScreen = showScreen; window.updatePeriodNumbers = updatePeriodNumbers; window.addRow = addRow; window.calculateLocal = calculateLocal;
         window.savePeriodData = savePeriodData; window.loadPeriodData = loadPeriodData; window.runHorizontalAnalysis = runHorizontalAnalysis;
         window.generateMgmtReport = generateMgmtReport; window.exportToExcel = exportToExcel;
         window.doLogin = doLogin; window.doLogout = doLogout; window.addUser = addUser; window.deleteUser = deleteUser;
+        window.downloadTemplate = downloadTemplate; window.uploadExcel = uploadExcel;
 
         populateYearDropdowns(); updatePeriodNumbers('selPeriodType','selPeriodNum'); updatePeriodNumbers('repType','repNum');
-        
-        // Start App if session exists
         if(currentSession) { startApp(); }
     </script>
 </body>
