@@ -275,7 +275,6 @@
         const db = getFirestore(app);
         const loadingMsg = document.getElementById('loadingMsg');
         
-        // Force English numerals with thousand separators
         function fmt(num) { if (isNaN(num) || num === null) return "0"; return Number(num).toLocaleString('en-US'); }
 
         let currentSession = JSON.parse(sessionStorage.getItem('zad_session')) || null;
@@ -312,7 +311,8 @@
                 liquidity: "السيولة", profit_margin: "هامش الربح", roi: "العائد", debts: "الديون",
                 liq_desc: "من كل 100 ريال يتبقى {margin}.", roi_desc: "كل 100 ريال عادت بـ {roi}.",
                 saved: "تم الحفظ!", error: "خطأ", no_data_err: "لا بيانات!", 
-                import_struct: "استيراد الهيكل؟", yes: "نعم", no: "لا"
+                import_struct: "استيراد الهيكل؟", yes: "نعم", no: "لا",
+                login_empty: "يرجى إدخال اسم المستخدم وكلمة المرور", db_error: "خطأ في الاتصال بقاعدة البيانات"
             },
             en: {
                 login_title: "Zad Al-Joud Fast Food\nFinancial Results", login_sub: "Please login to access the accounting system",
@@ -344,7 +344,8 @@
                 liquidity: "Liquidity", profit_margin: "Profit Margin", roi: "ROI", debts: "Debts",
                 liq_desc: "For every 100 SAR, {margin} remains.", roi_desc: "Every 100 SAR returned {roi}.",
                 saved: "Saved!", error: "Error", no_data_err: "No data!",
-                import_struct: "Import structure?", yes: "Yes", no: "No"
+                import_struct: "Import structure?", yes: "Yes", no: "No",
+                login_empty: "Please enter username and password", db_error: "Database connection error"
             }
         };
 
@@ -369,19 +370,72 @@
         };
 
         async function doLogin() {
-            const username = document.getElementById('loginUser').value; const password = document.getElementById('loginPass').value;
-            if(!username || !password) return;
-            document.getElementById('loginError').style.display = 'none'; document.getElementById('loginBtn').innerText = '...';
+            const username = document.getElementById('loginUser').value; 
+            const password = document.getElementById('loginPass').value;
+            
+            if(!username || !password) {
+                alert(i18n[currentLang].login_empty);
+                return;
+            }
+            
+            document.getElementById('loginError').style.display = 'none'; 
+            document.getElementById('loginBtn').innerText = '...';
+            
             try {
-                if(username === 'admin') { const adminDoc = await getDoc(doc(db, "app_users", "admin")); if(!adminDoc.exists()) { await setDoc(doc(db, "app_users", "admin"), { password: "admin123", role: "admin" }); } }
+                if(username === 'admin') { 
+                    try {
+                        const adminDoc = await getDoc(doc(db, "app_users", "admin")); 
+                        if(!adminDoc.exists()) { 
+                            await setDoc(doc(db, "app_users", "admin"), { password: "admin123", role: "admin" }); 
+                        }
+                    } catch(e) {
+                        console.warn("Could not verify admin doc:", e);
+                    }
+                }
+                
                 const userDoc = await getDoc(doc(db, "app_users", username));
-                if (userDoc.exists() && userDoc.data().password === password) { currentSession = { user: username, role: userDoc.data().role }; sessionStorage.setItem('zad_session', JSON.stringify(currentSession)); startApp(); } else { document.getElementById('loginError').style.display = 'block'; }
-            } catch(e) { alert(i18n[currentLang].error); } finally { document.getElementById('loginBtn').innerText = i18n[currentLang].login_btn; }
+                
+                if (userDoc.exists() && userDoc.data().password === password) { 
+                    currentSession = { user: username, role: userDoc.data().role }; 
+                    sessionStorage.setItem('zad_session', JSON.stringify(currentSession)); 
+                    startApp(); 
+                } else { 
+                    document.getElementById('loginError').style.display = 'block'; 
+                }
+            } catch(e) { 
+                console.error("Login error:", e);
+                alert(i18n[currentLang].db_error); 
+            } finally { 
+                document.getElementById('loginBtn').innerText = i18n[currentLang].login_btn; 
+            }
         }
+        
         function doLogout() { sessionStorage.removeItem('zad_session'); currentSession = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('loginScreen').style.display = 'flex'; }
+        
         function startApp() { if (!currentSession) return; document.getElementById('loginScreen').style.display = 'none'; document.getElementById('appContainer').style.display = 'flex'; document.getElementById('appContainer').className = `role-${currentSession.role}`; document.getElementById('currentUserDisplay').innerText = `${i18n[currentLang].username}: ${currentSession.user}`; loadUsersTable(); calculateLocal(); }
+        
         async function loadUsersTable() { const tbody = document.getElementById('usersTableBody'); tbody.innerHTML = ''; try { const q = await getDocs(collection(db, "app_users")); q.forEach((d) => { const u = d.data(); const roleName = u.role === 'admin' ? (currentLang==='ar'?'مدير':'Admin') : u.role === 'accountant' ? (currentLang==='ar'?'محاسب':'Accountant') : (currentLang==='ar'?'مشاهد':'Viewer'); const delBtn = d.id === 'admin' ? '' : `<button class="btn btn-danger btn-small btn-del" onclick="window.deleteUser('${d.id}')">${currentLang==='ar'?'حذف':'Delete'}</button>`; tbody.innerHTML += `<tr><td>${d.id}</td><td>${roleName}</td><td>${delBtn}</td></tr>`; }); } catch(e) {} }
-        async function addUser() { const name = document.getElementById('newUserName').value; const pass = document.getElementById('newUserPass').value; const role = document.getElementById('newUserRole').value; if(!name || !pass) { alert('!'); return; } try { await setDoc(doc(db, "app_users", name), { password: pass, role: role }); document.getElementById('newUserName').value = ''; document.getElementById('newUserPass').value = ''; loadUsersTable(); } catch(e) { alert(i18n[currentLang].error); } }
+        
+        async function addUser() { 
+            const name = document.getElementById('newUserName').value; 
+            const pass = document.getElementById('newUserPass').value; 
+            const role = document.getElementById('newUserRole').value; 
+            
+            if(!name || !pass) { 
+                alert(i18n[currentLang].login_empty); 
+                return; 
+            } 
+            
+            try { 
+                await setDoc(doc(db, "app_users", name), { password: pass, role: role }); 
+                document.getElementById('newUserName').value = ''; 
+                document.getElementById('newUserPass').value = ''; 
+                loadUsersTable(); 
+            } catch(e) { 
+                alert(i18n[currentLang].db_error); 
+            } 
+        }
+        
         async function deleteUser(username) { if(confirm(`${currentLang==='ar'?'حذف':'Delete'} ${username}?`)) { try { await deleteDoc(doc(db, "app_users", username)); loadUsersTable(); } catch(e) { alert(i18n[currentLang].error); } } }
 
         async function fetchDataFromCloud(key) { try { const docRef = doc(db, "financial_periods", key); const docSnap = await getDoc(docRef); return docSnap.exists() ? docSnap.data() : null; } catch(e) { return null; } }
@@ -432,7 +486,7 @@
 
         // Init
         populateYearDropdowns(); updatePeriodNumbers('selPeriodType','selPeriodNum'); updatePeriodNumbers('repType','repNum');
-        applyTranslations(); // Apply initial language
+        applyTranslations(); 
         if(currentSession) { startApp(); }
     </script>
 </body>
