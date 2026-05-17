@@ -6,6 +6,7 @@
     <title>نتائج أعمال مؤسسة زاد الجود للوجبات السريعة</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         :root { 
@@ -117,6 +118,19 @@
         body.role-accountant .restricted-admin { display: none; } 
         body.role-viewer .btn-save, body.role-viewer .btn-add, body.role-viewer .btn-del { display: none !important; }
         body.role-viewer input, body.role-viewer select { pointer-events: none; opacity: 0.8; }
+
+        /* FINANCIAL STATEMENTS STYLES (PDF READY) */
+        #fsPrintArea { background: #fff; color: #000; padding: 30px; border-radius: 8px; direction: rtl; font-family: 'Cairo', sans-serif; }
+        .fs-header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+        .fs-header h1 { margin: 0; font-size: 24px; color: #1e3a8a; }
+        .fs-header h2 { margin: 5px 0; font-size: 18px; }
+        .fs-section { margin-bottom: 30px; }
+        .fs-section h3 { font-size: 16px; color: #1e3a8a; border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 10px; }
+        .fs-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .fs-table th, .fs-table td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: right; }
+        .fs-table th { background-color: #f1f5f9; font-weight: bold; color: #334155; text-align: center; }
+        .fs-table .total-fs { font-weight: bold; background-color: #e2e8f0; }
+        .fs-table .subheader { font-weight: bold; background-color: #f8fafc; }
     </style>
 </head>
 <body>
@@ -145,6 +159,7 @@
             <div class="nav-item" onclick="window.showScreen('cashflow')" data-i18n="nav_cashflow">التدفقات النقدية</div>
             <div class="nav-item" onclick="window.showScreen('dashboard')" data-i18n="nav_dashboard">لوحة القيادة</div>
             <div class="nav-item" onclick="window.showScreen('analysis')" data-i18n="nav_analysis">التحليل المالي</div>
+            <div class="nav-item" onclick="window.showScreen('financialStatements')" data-i18n="nav_fs">📋 القوائم المالية</div>
             <div class="nav-item" onclick="window.showScreen('mgmtReport')" data-i18n="nav_report">تقرير الإدارة</div>
             <div class="nav-item restricted-admin" onclick="window.showScreen('users')" data-i18n="nav_users">👥 المستخدمين</div>
             <div class="logout-btn" onclick="window.doLogout()" data-i18n="logout">🚪 تسجيل خروج</div>
@@ -167,6 +182,7 @@
                 <div id="loadingMsg" class="loading" data-i18n="connecting">جاري الاتصال...</div>
             </div>
 
+            <!-- Existing Screens (income, balance, cashflow, dashboard, analysis) -->
             <div id="income" class="screen active">
                  <div class="card">
                     <div class="card-header"><span data-i18n="nav_income">قائمة الدخل</span></div>
@@ -238,6 +254,45 @@
                 <div class="card"><div class="card-header" data-i18n="fin_ratios">النسب المالية</div><div id="ratiosBody"></div></div>
             </div>
 
+            <!-- NEW: FINANCIAL STATEMENTS SCREEN -->
+            <div id="financialStatements" class="screen">
+                <div class="card">
+                    <div class="card-header">
+                        <span data-i18n="nav_fs">📋 القوائم المالية المقارنة</span>
+                    </div>
+                    <div style="display:flex; gap:15px; margin-bottom:20px; flex-wrap:wrap; align-items:flex-end; padding:15px; background:var(--bg-dark); border-radius:8px; border:1px solid var(--border);">
+                        <div style="flex:1; min-width: 140px;">
+                            <label style="display:block; color:var(--primary); font-weight:bold; font-size:12px;">الفترة الأساسية</label>
+                            <select id="fsYear"></select>
+                            <select id="fsType" onchange="window.updatePeriodNumbers('fsType','fsNum')"><option value="Y">سنوي</option><option value="H">نصف سنوي</option><option value="Q">ربع سنوي</option><option value="M" selected>شهري</option></select>
+                            <select id="fsNum"></select>
+                        </div>
+                        <div style="flex:1; min-width: 140px;">
+                            <label style="display:block; color:var(--danger); font-weight:bold; font-size:12px;">مقارنة 1</label>
+                            <select id="fsComp1"></select>
+                        </div>
+                        <div style="flex:1; min-width: 140px;">
+                            <label style="display:block; color:var(--danger); font-weight:bold; font-size:12px;">مقارنة 2</label>
+                            <select id="fsComp2"></select>
+                        </div>
+                        <div style="flex:1; min-width: 140px;">
+                            <label style="display:block; color:var(--danger); font-weight:bold; font-size:12px;">مقارنة 3</label>
+                            <select id="fsComp3"></select>
+                        </div>
+                        <div style="display:flex; gap:10px; align-self: flex-end;">
+                            <button class="btn btn-primary" onclick="window.generateFS()">عرض القوائم</button>
+                            <button class="btn btn-success" onclick="window.exportFSPDF()">📥 PDF</button>
+                            <button class="btn btn-warning" onclick="window.exportFSExcel()">📊 Excel</button>
+                        </div>
+                    </div>
+                    
+                    <div id="fsPrintArea">
+                        <!-- Content will be injected here -->
+                        <div style="text-align:center; color:#64748b; padding:40px;">يرجى اختيار الفترات والضغط على "عرض القوائم"</div>
+                    </div>
+                </div>
+            </div>
+
             <div id="mgmtReport" class="screen">
                 <div class="card" style="border-top: 4px solid var(--primary);">
                     <div class="card-header"><span data-i18n="nav_report">تقرير الإدارة</span><button class="btn btn-success" onclick="window.exportToExcel()">📥 Excel</button></div>
@@ -303,7 +358,7 @@
                 login_title: "نتائج أعمال مؤسسة زاد الجود\nللوجبات السريعة", login_sub: "يرجى تسجيل الدخول للوصول إلى النظام المحاسبي",
                 username: "اسم المستخدم", password: "كلمة المرور", login_btn: "تسجيل الدخول", login_error: "اسم المستخدم أو كلمة المرور غير صحيحة",
                 app_title: "نتائج أعمال مؤسسة زاد الجود\nللوجبات السريعة", nav_income: "قائمة الدخل", nav_balance: "المركز المالي",
-                nav_cashflow: "التدفقات النقدية", nav_dashboard: "لوحة القيادة", nav_analysis: "التحليل المالي", nav_report: "تقرير الإدارة",
+                nav_cashflow: "التدفقات النقدية", nav_dashboard: "لوحة القيادة", nav_analysis: "التحليل المالي", nav_fs: "📋 القوائم المالية", nav_report: "تقرير الإدارة",
                 nav_users: "👥 المستخدمين", logout: "🚪 تسجيل خروج", year: "السنة:", period: "الفترة:", num: "رقم:",
                 load: "🔄 تحميل", save: "💾 حفظ", download_tpl: "📥 قالب Excel", upload_excel: "📤 رفع Excel", connecting: "جاري الاتصال...",
                 revenues: "الإيرادات", item: "البند", amount: "المبلغ", noncash_q: "غير نقدي؟", add: "+ إضافة",
@@ -337,7 +392,7 @@
                 login_title: "Zad Al-Joud Fast Food\nFinancial Results", login_sub: "Please login to access the accounting system",
                 username: "Username", password: "Password", login_btn: "Login", login_error: "Invalid username or password",
                 app_title: "Zad Al-Joud Fast Food\nFinancial Results", nav_income: "Income Statement", nav_balance: "Balance Sheet",
-                nav_cashflow: "Cash Flows", nav_dashboard: "Dashboard", nav_analysis: "Financial Analysis", nav_report: "Mgmt Report",
+                nav_cashflow: "Cash Flows", nav_dashboard: "Dashboard", nav_analysis: "Financial Analysis", nav_fs: "📋 Financial Statements", nav_report: "Mgmt Report",
                 nav_users: "👥 Users", logout: "🚪 Logout", year: "Year:", period: "Period:", num: "Num:",
                 load: "🔄 Load", save: "💾 Save", download_tpl: "📥 Excel Template", upload_excel: "📤 Upload Excel", connecting: "Connecting...",
                 revenues: "Revenues", item: "Item", amount: "Amount", noncash_q: "Non-Cash?", add: "+ Add",
@@ -469,7 +524,7 @@
         function updatePeriodNumbers(typeId, numId) { typeId = typeId || 'selPeriodType'; numId = numId || 'selPeriodNum'; const t = document.getElementById(typeId).value; const n = document.getElementById(numId); n.innerHTML = ''; let c = t==='Y'?1:t==='H'?2:t==='Q'?4:12; for(let i=1;i<=c;i++) n.innerHTML+=`<option value="${i}">${i}</option>`; }
         function getKey(y,t,n) { return `ZAD_${y}_${t}_${n}`; }
         function getCurrentKey() { return getKey(document.getElementById('selYear').value, document.getElementById('selPeriodType').value, document.getElementById('selPeriodNum').value); }
-        function populateYearDropdowns() { const cy = new Date().getFullYear(); const sy = cy - 5; const ey = cy + 10; const ids = ['selYear', 'baseYear', 'c1Year', 'c2Year', 'c3Year', 'repYear']; ids.forEach(id => { const s = document.getElementById(id); if(!s) return; s.innerHTML=''; for(let y=ey;y>=sy;y--) { const o = document.createElement('option'); o.value=y; o.text=y; if((id==='selYear'||id==='baseYear'||id==='repYear')&&y===cy) o.selected=true; else if(id==='c1Year'&&y===cy-1) o.selected=true; else if(id==='c2Year'&&y===cy-2) o.selected=true; else if(id==='c3Year'&&y===cy-3) o.selected=true; s.appendChild(o); } }); }
+        function populateYearDropdowns() { const cy = new Date().getFullYear(); const sy = cy - 5; const ey = cy + 10; const ids = ['selYear', 'baseYear', 'c1Year', 'c2Year', 'c3Year', 'repYear', 'fsYear', 'fsComp1', 'fsComp2', 'fsComp3']; ids.forEach(id => { const s = document.getElementById(id); if(!s) return; s.innerHTML=''; for(let y=ey;y>=sy;y--) { const o = document.createElement('option'); o.value=y; o.text=y; if((id==='selYear'||id==='baseYear'||id==='repYear'||id==='fsYear')&&y===cy) o.selected=true; else if((id==='c1Year'||id==='fsComp1')&&y===cy-1) o.selected=true; else if((id==='c2Year'||id==='fsComp2')&&y===cy-2) o.selected=true; else if((id==='c3Year'||id==='fsComp3')&&y===cy-3) o.selected=true; s.appendChild(o); } }); }
 
         function addRow(tableId, type='none', isNonCashChecked=false, name="", amount=0, assetTypeVal='other') { const tbody = document.getElementById(tableId).querySelector('tbody'); const tr = document.createElement('tr'); let cells = `<td><input type="text" style="width:100%; background:var(--bg-dark); color:var(--text-main); border-color:var(--border);" value="${name}"></td><td><input type="number" style="width:100%; background:var(--bg-dark); color:var(--text-main); border-color:var(--border);" value="${amount}" onchange="window.calculateLocal()"></td>`; if(type==='noncash') cells += `<td class="checkbox-group"><input type="checkbox" onchange="window.calculateLocal()" ${isNonCashChecked?'checked':''}> <span data-i18n="noncash_q">${i18n[currentLang].noncash_q}</span></td>`; else if(type==='asset') cells += `<td><select onchange="window.calculateLocal()" style="background:var(--bg-dark); color:var(--text-main); border-color:var(--border);"><option value="other" ${assetTypeVal==='other'?'selected':''}>${currentLang==='ar'?'أخرى':'Other'}</option><option value="fixed" ${assetTypeVal==='fixed'?'selected':''}>${currentLang==='ar'?'ثابتة':'Fixed'}</option><option value="acc_dep" ${assetTypeVal==='acc_dep'?'selected':''}>${currentLang==='ar'?'مجمع إهلاك':'Acc Dep'}</option><option value="intan" ${assetTypeVal==='intan'?'selected':''}>${currentLang==='ar'?'غير ملموسة':'Intangible'}</option><option value="acc_amort" ${assetTypeVal==='acc_amort'?'selected':''}>${currentLang==='ar'?'مجمع إطفاء':'Acc Amort'}</option></select></td>`; cells += `<td><button class="btn btn-danger btn-small btn-del" onclick="this.parentElement.parentElement.remove();window.calculateLocal()">${currentLang==='ar'?'حذف':'Del'}</button></td>`; tr.innerHTML = cells; tbody.appendChild(tr); }
         function getTableData(tableId, type) { const rows = document.getElementById(tableId).querySelector('tbody').rows; let data=[]; for(let r of rows) { let obj = { name: r.cells[0].querySelector('input').value, amount: parseFloat(r.cells[1].querySelector('input').value)||0 }; if(type==='noncash') obj.isNonCash = r.cells[2].querySelector('input').checked; if(type==='asset') obj.assetType = r.cells[2].querySelector('select').value; data.push(obj); } return data; }
@@ -479,7 +534,6 @@
 
         function getFinancialSummary(data) { if(!data || !data.inc) return null; const sum = (arr) => arr.reduce((a,b)=>a+(b.amount||0),0); const sumNC = (arr) => arr.reduce((a,b)=>a+(b.isNonCash?(b.amount||0):0),0); const rev=sum(data.inc.rev), cogs=sum(data.inc.cogs), gp=rev-cogs, opex=sum(data.inc.opex), ebitda=gp-opex, dep=sum(data.inc.dep), ebit=ebitda-dep, tax=sum(data.inc.tax), np=ebit-tax; const totalNonCash = sumNC(data.inc.rev)+sumNC(data.inc.cogs)+sumNC(data.inc.opex)+sumNC(data.inc.dep)+sumNC(data.inc.tax); const ca=sum(data.bal.ca); let fixed=0, accDep=0, intan=0, accAmort=0, otherNca=0; data.bal.nca.forEach(i => { if(i.assetType==='fixed') fixed+=i.amount; else if(i.assetType==='acc_dep') accDep+=i.amount; else if(i.assetType==='intan') intan+=i.amount; else if(i.assetType==='acc_amort') accAmort+=i.amount; else otherNca+=i.amount; }); const tnca=(fixed-accDep)+(intan-accAmort)+otherNca, ta=ca+tnca, tl=sum(data.bal.liab), teq=sum(data.bal.eq), tle=tl+teq; const cfOp=np+totalNonCash+sum(data.cf.op), cfInv=sum(data.cf.inv), cfFin=sum(data.cf.fin), cfNet=cfOp+cfInv+cfFin, cfEnd=data.cf.beg+cfNet; return { rev, cogs, gp, opex, ebitda, dep, ebit, tax, np, ca, tnca, ta, tl, teq, tle, cfOp, cfInv, cfFin, cfNet, cfEnd }; }
 
-        // دالة الحفظ (تم إضافة finally)
         async function savePeriodData() { 
             if(currentSession.role === 'viewer') return; 
             loadingMsg.style.display = 'block'; 
@@ -491,14 +545,13 @@
             } catch (e) { 
                 showToast(i18n[currentLang].db_permission_error, 'error'); 
             } finally {
-                loadingMsg.style.display = 'none'; // يضمن الإخفاء في كل الأحوال
+                loadingMsg.style.display = 'none';
             }
         }
         
         function zeroOutData(data) { let d = JSON.parse(JSON.stringify(data)); const zeroArr = (arr) => arr.forEach(i => i.amount=0); [d.inc.rev, d.inc.cogs, d.inc.opex, d.inc.dep, d.inc.tax, d.bal.ca, d.bal.nca, d.bal.liab, d.bal.eq, d.cf.op, d.cf.inv, d.cf.fin].forEach(zeroArr); d.cf.beg = 0; return d; }
         function getPrevKey() { let y=parseInt(document.getElementById('selYear').value), t=document.getElementById('selPeriodType').value, n=parseInt(document.getElementById('selPeriodNum').value); let pN=n-1, pY=y; if(pN===0){ pY=y-1; pN=t==='H'?2:t==='Q'?4:12; } return getKey(pY,t,pN); }
         
-        // دالة التحميل (تم إضافة finally)
         async function loadPeriodData() { 
             loadingMsg.style.display = 'block'; 
             const key = getCurrentKey(); 
@@ -519,7 +572,7 @@
             } catch(e) { 
                 showToast(i18n[currentLang].error, 'error'); 
             } finally {
-                loadingMsg.style.display = 'none'; // يضمن الإخفاء في كل الأحوال
+                loadingMsg.style.display = 'none';
             }
         }
 
@@ -567,7 +620,6 @@
         function renderVerticalAnalysis(rev, gp, opex, np) { const L = i18n[currentLang]; const vData = [{n:L.revenues,v:rev,p:100},{n:L.gp,v:gp,p:rev?gp/rev*100:0},{n:L.opex,v:opex,p:rev?opex/rev*100:0},{n:L.net_income,v:np,p:rev?np/rev*100:0}]; document.getElementById('anvBody').innerHTML = vData.map(d=>`<tr><td>${d.n}</td><td>${fmt(d.v)}</td><td>${d.p.toFixed(1)}%</td></tr>`).join(''); }
         function renderRatios(rev, np, ca, tl, tle, ta, teq) { const L = i18n[currentLang]; const currentRatio = tl?(ca/tl).toFixed(2):0; const debtRatio = ta?(tle/ta*100).toFixed(1):0; const roe = teq?(np/teq*100).toFixed(1):0; const netMargin = rev?(np/rev*100).toFixed(1):0; document.getElementById('ratiosBody').innerHTML = `<div class="mgmt-card"><h4>${L.liquidity}: ${currentRatio}</h4><p>${currentRatio>=1.5?'🟢 '+L.excellent:currentRatio>=1?'🟡 '+L.acceptable:'🔴 '+L.risk}</p></div><div class="mgmt-card"><h4>${L.profit_margin}: ${netMargin}%</h4><p>${L.liq_desc.replace('{margin}', netMargin)}</p></div><div class="mgmt-card"><h4>${L.roi}: ${roe}%</h4><p>${L.roi_desc.replace('{roi}', roe)}</p></div><div class="mgmt-card"><h4>${L.debts}: ${debtRatio}%</h4><p>${debtRatio>70?'🔴 '+L.status_danger:'🟢 '+L.status_safe}</p></div>`; }
 
-        // باقي الدوال (تم إضافة finally)
         async function runHorizontalAnalysis() { 
             loadingMsg.style.display = 'block'; 
             try {
@@ -613,12 +665,114 @@
                 } catch (err) { 
                     console.error(err); showToast(i18n[currentLang].error, 'error'); 
                 } finally { 
-                    loadingMsg.style.display = 'none'; // يضمن الإخفاء
+                    loadingMsg.style.display = 'none'; 
                     event.target.value = ''; 
                 } 
             }; 
             reader.readAsArrayBuffer(file); 
         }
+
+        // NEW: FINANCIAL STATEMENTS LOGIC
+        async function generateFS() {
+            loadingMsg.style.display = 'block';
+            try {
+                const y = document.getElementById('fsYear').value;
+                const t = document.getElementById('fsType').value;
+                const n = document.getElementById('fsNum').value;
+                const c1 = document.getElementById('fsComp1').value;
+                const c2 = document.getElementById('fsComp2').value;
+                const c3 = document.getElementById('fsComp3').value;
+
+                const baseData = await fetchDataFromCloud(getKey(y, t, n));
+                const comp1Data = await fetchDataFromCloud(getKey(c1, t, n));
+                const comp2Data = await fetchDataFromCloud(getKey(c2, t, n));
+                const comp3Data = await fetchDataFromCloud(getKey(c3, t, n));
+
+                const base = getFinancialSummary(baseData);
+                const comp1 = getFinancialSummary(comp1Data);
+                const comp2 = getFinancialSummary(comp2Data);
+                const comp3 = getFinancialSummary(comp3Data);
+
+                if (!base) {
+                    document.getElementById('fsPrintArea').innerHTML = `<div style="text-align:center; color:#ef4444; padding:40px;">لا توجد بيانات للفترة الأساسية</div>`;
+                    return;
+                }
+
+                const L = i18n[currentLang];
+                const cols = [L.item, `${y}`, c1, c2, c3].filter((c, i) => i < 2 || (i===2 && comp1) || (i===3 && comp2) || (i===4 && comp3));
+                
+                function buildTable(title, rowsDef) {
+                    let html = `<div class="fs-section"><h3>${title}</h3><table class="fs-table"><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
+                    rowsDef.forEach(row => {
+                        let cls = row.isTotal ? ' class="total-fs"' : (row.isSub ? ' class="subheader"' : '');
+                        html += `<tr${cls}><td>${row.name}</td><td>${fmt(base[row.key])}</td>`;
+                        if(comp1) html += `<td>${fmt(comp1[row.key])}</td>`;
+                        if(comp2) html += `<td>${fmt(comp2[row.key])}</td>`;
+                        if(comp3) html += `<td>${fmt(comp3[row.key])}</td>`;
+                        html += `</tr>`;
+                    });
+                    html += `</tbody></table></div>`;
+                    return html;
+                }
+
+                const incRows = [
+                    {name: L.revenues, key: 'rev'}, {name: L.cogs, key: 'cogs'}, {name: L.gp, key: 'gp', isTotal: true},
+                    {name: L.opex, key: 'opex'}, {name: 'EBITDA', key: 'ebitda', isTotal: true},
+                    {name: L.dep, key: 'dep'}, {name: 'EBIT', key: 'ebit', isTotal: true},
+                    {name: L.tax, key: 'tax'}, {name: L.net_income, key: 'np', isTotal: true}
+                ];
+
+                const balRows = [
+                    {name: L.ca, key: 'ca', isSub: true}, {name: L.nca, key: 'tnca', isSub: true},
+                    {name: L.total_assets, key: 'ta', isTotal: true},
+                    {name: L.liab, key: 'tl', isSub: true}, {name: L.eq, key: 'teq', isSub: true},
+                    {name: L.liab_eq, key: 'tle', isTotal: true}
+                ];
+
+                const cfRows = [
+                    {name: L.cf_op_total, key: 'cfOp', isSub: true}, {name: L.cf_inv_total, key: 'cfInv', isSub: true},
+                    {name: L.cf_fin_total, key: 'cfFin', isSub: true}, {name: L.net_cf, key: 'cfNet', isTotal: true},
+                    {name: L.end_period, key: 'cfEnd', isTotal: true}
+                ];
+
+                const finalHtml = `
+                    <div class="fs-header">
+                        <h1>نتائج أعمال مؤسسة زاد الجود للوجبات السريعة</h1>
+                        <h2>القوائم المالية المقارنة - الفترة: ${t==='Y'?'سنوي':t==='Q'?'ربع سنوي':t==='M'?'شهري':'نصف سنوي'} ${n !== '1' || t === 'Y' ? n : ''} ${y}</h2>
+                    </div>
+                    ${buildTable(L.nav_income, incRows)}
+                    ${buildTable(L.nav_balance, balRows)}
+                    ${buildTable(L.nav_cashflow, cfRows)}
+                `;
+
+                document.getElementById('fsPrintArea').innerHTML = finalHtml;
+
+            } catch(e) {
+                showToast(i18n[currentLang].error, 'error');
+            } finally {
+                loadingMsg.style.display = 'none';
+            }
+        }
+
+        window.exportFSPDF = function() {
+            const element = document.getElementById('fsPrintArea');
+            const opt = {
+                margin:       10,
+                filename:     'Financial_Statements.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        window.exportFSExcel = function() {
+            const el = document.getElementById('fsPrintArea');
+            const wb = XLSX.utils.table_to_book(el, {sheet: "Financial Statements"});
+            XLSX.writeFile(wb, "Financial_Statements.xlsx");
+        }
+
+        window.generateFS = generateFS;
 
         // Global Scope
         window.showScreen = showScreen; window.updatePeriodNumbers = updatePeriodNumbers; window.addRow = addRow; window.calculateLocal = calculateLocal;
@@ -628,7 +782,7 @@
         window.downloadTemplate = downloadTemplate; window.uploadExcel = uploadExcel; window.toggleLanguage = toggleLanguage;
 
         // Init
-        populateYearDropdowns(); updatePeriodNumbers('selPeriodType','selPeriodNum'); updatePeriodNumbers('repType','repNum');
+        populateYearDropdowns(); updatePeriodNumbers('selPeriodType','selPeriodNum'); updatePeriodNumbers('repType','repNum'); updatePeriodNumbers('fsType','fsNum');
         applyTranslations(); 
         if(currentSession) { startApp(); }
     </script>
