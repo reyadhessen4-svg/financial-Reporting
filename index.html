@@ -33,29 +33,32 @@
         }
 
         /* TOAST NOTIFICATION SYSTEM */
-        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 99999; display: flex; flex-direction: column; gap: 10px; align-items: center; }
-        .toast { padding: 14px 24px; border-radius: 8px; color: white; font-weight: 700; font-family: 'Cairo', sans-serif; box-shadow: 0 10px 25px rgba(0,0,0,0.5); animation: slideIn 0.3s ease-out forwards; opacity: 0; min-width: 300px; text-align: center; font-size: 15px; }
+        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 99999; display: flex; flex-direction: column; gap: 10px; align-items: center; pointer-events: none; }
+        .toast { padding: 14px 24px; border-radius: 8px; color: white; font-weight: 700; font-family: 'Cairo', sans-serif; box-shadow: 0 10px 25px rgba(0,0,0,0.5); animation: slideIn 0.3s ease-out forwards; opacity: 0; min-width: 300px; text-align: center; font-size: 15px; pointer-events: auto; }
         .toast-success { background-color: var(--success); } .toast-error { background-color: var(--danger); } .toast-warning { background-color: var(--warning); color: #000; }
-        @keyframes slideIn { from { opacity: 0; top: -50px; } to { opacity: 1; top: 0; } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-30px); } }
         
         /* LOGIN */
         #loginScreen { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg-dark); display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .login-card { background: var(--surface); padding: 40px; border-radius: 16px; width: 420px; text-align: center; border: 1px solid var(--border); }
         .login-card h2 { color: var(--text-main); margin-bottom: 10px; font-size: 24px; font-weight: 900; white-space: pre-line; }
         .login-card p { color: var(--text-muted); margin-bottom: 30px; font-size: 14px; }
-        .login-card input { width: 100%; padding: 14px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; background: var(--bg-dark); color: var(--text-main); font-family: 'Cairo'; }
-        .login-card input:focus { outline: none; border-color: var(--primary); }
+        .login-card input { width: 100%; padding: 14px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; background: var(--bg-dark); color: var(--text-main); font-family: 'Cairo'; transition: border-color 0.2s; }
+        .login-card input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
         .login-card button { width: 100%; padding: 14px; border: none; border-radius: 8px; background: var(--primary); color: white; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.3s; font-family: 'Cairo'; }
-        .login-card button:hover { background: #2563eb; }
+        .login-card button:hover { background: #2563eb; transform: translateY(-1px); }
+        .login-card button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
         .login-error { color: var(--danger); font-weight: bold; margin-top: 10px; display: none; }
 
         /* LAYOUT */
         #appContainer { display: none; flex-direction: row; width: 100%; height: 100%; }
         .sidebar { width: 260px; background-color: #020617; color: var(--text-muted); padding-top: 20px; flex-shrink: 0; overflow-y: auto; display: flex; flex-direction: column; border-left: 1px solid var(--border); }
         .sidebar h2 { text-align: center; font-size: 16px; margin-bottom: 30px; padding: 0 20px; line-height: 1.6; border-bottom: 1px solid var(--border); padding-bottom: 20px; white-space: pre-line; color: var(--text-main); font-weight: 800; }
-        .nav-item { padding: 14px 24px; cursor: pointer; transition: 0.3s; border-bottom: 1px solid rgba(255,255,255,0.05); font-size:14px; font-weight: 600; }
+        .nav-item { padding: 14px 24px; cursor: pointer; transition: 0.3s; border-bottom: 1px solid rgba(255,255,255,0.05); font-size:14px; font-weight: 600; user-select: none; }
         .nav-item:hover, .nav-item.active { background-color: var(--surface); color: var(--primary); border-right: 3px solid var(--primary); }
-        .logout-btn { margin-top: auto; background: var(--surface); text-align: center; padding: 15px; cursor: pointer; font-weight: bold; color: var(--danger); }
+        .nav-item:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+        .logout-btn { margin-top: auto; background: var(--surface); text-align: center; padding: 15px; cursor: pointer; font-weight: bold; color: var(--danger); transition: 0.3s; }
         .logout-btn:hover { background: var(--surface-hover); }
         
         .main { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; background-color: var(--bg-dark); }
@@ -64,36 +67,42 @@
         /* TOP BAR */
         .period-bar { background: var(--surface); padding: 16px 20px; border-radius: 12px; margin-bottom: 24px; display: flex; gap: 15px; align-items: center; border: 1px solid var(--border); flex-wrap: wrap; }
         .period-bar label { font-weight: 600; font-size: 14px; color: var(--text-muted); } 
-        .period-bar select, .period-bar input { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-dark); color: var(--text-main); font-family: 'Cairo'; }
+        .period-bar select, .period-bar input { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-dark); color: var(--text-main); font-family: 'Cairo'; transition: border-color 0.2s; }
+        .period-bar select:focus, .period-bar input:focus { outline: none; border-color: var(--primary); }
         .period-actions { margin-right: auto; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         [dir="ltr"] .period-actions { margin-right: 0; margin-left: auto; }
         
         .user-badge { background: var(--bg-dark); padding: 6px 12px; border-radius: 20px; font-size: 12px; color: var(--primary); font-weight: 700; border: 1px solid var(--border); }
-        .lang-btn { background: var(--surface-hover); color: var(--text-main); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12px; }
+        .lang-btn { background: var(--surface-hover); color: var(--text-main); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12px; transition: 0.2s; }
+        .lang-btn:hover { background: var(--border); }
         
         /* CARDS & TABLES */
         .card { background: var(--surface); padding: 24px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 24px; }
         .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px; color: var(--text-main); font-weight: 800; font-size: 20px; }
         
-        input[type="text"], input[type="number"], select { padding: 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; background: var(--bg-dark); color: var(--text-main); font-family: 'Cairo'; }
+        input[type="text"], input[type="number"], select { padding: 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; background: var(--bg-dark); color: var(--text-main); font-family: 'Cairo'; transition: border-color 0.2s; }
         input:focus, select:focus { outline: none; border-color: var(--primary); }
         .checkbox-group { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-muted); }
         
-        .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 700; color: white; font-size: 13px; transition: 0.2s; font-family: 'Cairo'; }
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 700; color: white; font-size: 13px; transition: 0.2s; font-family: 'Cairo'; display: inline-flex; align-items: center; gap: 6px; }
+        .btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
+        .btn:active { transform: translateY(0); }
         .btn-primary { background-color: var(--primary); } .btn-success { background-color: var(--success); }
         .btn-danger { background-color: var(--danger); } .btn-warning { background-color: var(--warning); color: #000; }
         .btn-small { padding: 4px 10px; font-size: 12px; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
         
         .dynamic-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
         .dynamic-table th, .dynamic-table td { border: 1px solid var(--border); padding: 10px; text-align: center; font-size: 13px; }
-        .dynamic-table th { background-color: var(--bg-dark); color: var(--text-muted); font-weight: 700; }
+        .dynamic-table th { background-color: var(--bg-dark); color: var(--text-muted); font-weight: 700; position: sticky; top: 0; }
         .dynamic-table td { background-color: var(--surface); }
-        .total-row { background-color: var(--bg-dark); font-weight: 800; padding: 12px; text-align: left; margin-top:10px; font-size: 18px; color: var(--primary); border-radius: 6px; border: 1px solid var(--border); }
-        [dir="ltr"] .total-row { text-align: right; }
+        .dynamic-table tr:hover td { background-color: var(--surface-hover); }
+        .total-row { background-color: var(--bg-dark); font-weight: 800; padding: 12px; text-align: start; margin-top:10px; font-size: 18px; color: var(--primary); border-radius: 6px; border: 1px solid var(--border); display: flex; justify-content: space-between; }
         
         /* DASHBOARD */
         .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 24px; }
-        .kpi-box { background: var(--surface); padding: 20px; border-radius: 12px; text-align: right; border: 1px solid var(--border); box-shadow: none; }
+        .kpi-box { background: var(--surface); padding: 20px; border-radius: 12px; text-align: start; border: 1px solid var(--border); transition: transform 0.2s, box-shadow 0.2s; }
+        .kpi-box:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
         .kpi-box h3 { margin: 0; font-size: 14px; color: var(--text-muted); font-weight: 700; } 
         .kpi-box .value { font-size: 36px; font-weight: 900; margin: 10px 0; color: var(--text-main); letter-spacing: -1px; }
         .change { font-size: 13px; font-weight: 700; margin-top: 5px; }
@@ -107,7 +116,7 @@
         .mgmt-card { background: var(--bg-dark); padding: 20px; border-radius: 12px; margin-bottom: 15px; border-inline-start: 5px solid var(--primary); border: 1px solid var(--border); }
         .mgmt-card h3 { margin: 0 0 10px 0; font-size: 18px; color: var(--text-main); display: flex; align-items: center; gap: 10px; font-weight: 800; }
         .mgmt-card p { margin: 5px 0; line-height: 1.6; font-size: 15px; color: var(--text-muted); }
-        .traffic-light { display: inline-block; width: 14px; height: 14px; border-radius: 50%; }
+        .traffic-light { display: inline-block; width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
         .tl-green { background: var(--success); box-shadow: 0 0 8px var(--success); } .tl-red { background: var(--danger); box-shadow: 0 0 8px var(--danger); } .tl-yellow { background: var(--warning); box-shadow: 0 0 8px var(--warning); }
         
         .change-pos { color: var(--success); font-weight: bold; } .change-neg { color: var(--danger); font-weight: bold; }
@@ -134,7 +143,7 @@
         .fs-table th { color: var(--text-muted); font-weight: 700; text-align: center; padding: 12px 5px; border-bottom: 2px solid var(--border); font-size: 13px; }
         .fs-table td { padding: 15px 5px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .fs-table tr:last-child td { border-bottom: none; }
-        .fs-table .item-name { font-weight: 500; color: var(--text-main); padding-right: 15px; }
+        .fs-table .item-name { font-weight: 500; color: var(--text-main); padding-inline-start: 15px; }
         .fs-table .item-val { text-align: center; font-variant-numeric: tabular-nums; font-weight: 600; color: var(--text-muted); letter-spacing: 0.5px; }
 
         .fs-table .total-fs td { padding-top: 18px; margin-top: 10px; font-weight: 800; color: var(--primary) !important; border-top: 2px solid var(--primary); border-bottom: none; background: rgba(59, 130, 246, 0.05); }
@@ -152,6 +161,20 @@
         .pdf-export-mode .fs-table .total-fs td { color: #1e3a8a !important; border-top-color: #1e3a8a !important; background: #eff6ff !important; }
         .pdf-export-mode .fs-table .subheader td { color: #0f172a !important; background: #f8fafc !important; border-color: #e2e8f0 !important; }
 
+        /* CONFIRMATION DIALOG */
+        .confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99998; display: flex; align-items: center; justify-content: center; animation: fadeIn 0.2s; }
+        .confirm-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 30px; max-width: 400px; text-align: center; }
+        .confirm-box p { font-size: 16px; margin-bottom: 20px; color: var(--text-main); font-weight: 600; }
+        .confirm-box .btn-group { display: flex; gap: 10px; justify-content: center; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .sidebar { width: 200px; }
+            .kpi-container { grid-template-columns: 1fr; }
+            .period-bar { flex-direction: column; align-items: stretch; }
+            .period-actions { margin-right: 0 !important; margin-left: 0 !important; }
+        }
     </style>
 </head>
 <body>
@@ -164,8 +187,8 @@
         <div class="login-card">
             <h2 data-i18n="login_title">نتائج أعمال مؤسسة زاد الجود\nللوجبات السريعة</h2>
             <p data-i18n="login_sub">يرجى تسجيل الدخول للوصول إلى النظام المحاسبي</p>
-            <input type="text" id="loginUser" data-i18n-placeholder="username" placeholder="اسم المستخدم">
-            <input type="password" id="loginPass" data-i18n-placeholder="password" placeholder="كلمة المرور">
+            <input type="text" id="loginUser" data-i18n-placeholder="username" placeholder="اسم المستخدم" autocomplete="username">
+            <input type="password" id="loginPass" data-i18n-placeholder="password" placeholder="كلمة المرور" autocomplete="current-password">
             <button id="loginBtn" onclick="window.doLogin()" data-i18n="login_btn">تسجيل الدخول</button>
             <div id="loginError" class="login-error" data-i18n="login_error">اسم المستخدم أو كلمة المرور غير صحيحة</div>
         </div>
@@ -175,14 +198,14 @@
     <div id="appContainer" class="role-admin">
         <div class="sidebar">
             <h2 data-i18n="app_title">نتائج أعمال مؤسسة زاد الجود\nللوجبات السريعة</h2>
-            <div class="nav-item active" onclick="window.showScreen('income')" data-i18n="nav_income">قائمة الدخل</div>
-            <div class="nav-item" onclick="window.showScreen('balance')" data-i18n="nav_balance">المركز المالي</div>
-            <div class="nav-item" onclick="window.showScreen('cashflow')" data-i18n="nav_cashflow">التدفقات النقدية</div>
-            <div class="nav-item" onclick="window.showScreen('dashboard')" data-i18n="nav_dashboard">لوحة القيادة</div>
-            <div class="nav-item" onclick="window.showScreen('analysis')" data-i18n="nav_analysis">التحليل المالي</div>
-            <div class="nav-item" onclick="window.showScreen('financialStatements')" data-i18n="nav_fs">📋 القوائم المالية</div>
-            <div class="nav-item" onclick="window.showScreen('mgmtReport')" data-i18n="nav_report">تقرير الإدارة</div>
-            <div class="nav-item restricted-admin" onclick="window.showScreen('users')" data-i18n="nav_users">👥 المستخدمين</div>
+            <div class="nav-item active" data-screen="income" onclick="window.showScreen('income', this)" tabindex="0" data-i18n="nav_income">قائمة الدخل</div>
+            <div class="nav-item" data-screen="balance" onclick="window.showScreen('balance', this)" tabindex="0" data-i18n="nav_balance">المركز المالي</div>
+            <div class="nav-item" data-screen="cashflow" onclick="window.showScreen('cashflow', this)" tabindex="0" data-i18n="nav_cashflow">التدفقات النقدية</div>
+            <div class="nav-item" data-screen="dashboard" onclick="window.showScreen('dashboard', this)" tabindex="0" data-i18n="nav_dashboard">لوحة القيادة</div>
+            <div class="nav-item" data-screen="analysis" onclick="window.showScreen('analysis', this)" tabindex="0" data-i18n="nav_analysis">التحليل المالي</div>
+            <div class="nav-item" data-screen="financialStatements" onclick="window.showScreen('financialStatements', this)" tabindex="0" data-i18n="nav_fs">📋 القوائم المالية</div>
+            <div class="nav-item" data-screen="mgmtReport" onclick="window.showScreen('mgmtReport', this)" tabindex="0" data-i18n="nav_report">تقرير الإدارة</div>
+            <div class="nav-item restricted-admin" data-screen="users" onclick="window.showScreen('users', this)" tabindex="0" data-i18n="nav_users">👥 المستخدمين</div>
             <div class="logout-btn" onclick="window.doLogout()" data-i18n="logout">🚪 تسجيل خروج</div>
         </div>
 
@@ -190,9 +213,9 @@
             <div class="period-bar">
                 <button class="lang-btn" onclick="window.toggleLanguage()">EN / عربي</button>
                 <span class="user-badge" id="currentUserDisplay">المدير</span>
-                <label data-i18n="year">السنة:</label><select id="selYear"></select>
-                <label data-i18n="period">الفترة:</label><select id="selPeriodType" onchange="window.updatePeriodNumbers('selPeriodType','selPeriodNum')"><option value="Y">سنوي</option><option value="H">نصف سنوي</option><option value="Q">ربع سنوي</option><option value="M" selected>شهري</option></select>
-                <label data-i18n="num">رقم:</label><select id="selPeriodNum"></select>
+                <label data-i18n="year">السنة:</label><select id="selYear" aria-label="السنة"></select>
+                <label data-i18n="period">الفترة:</label><select id="selPeriodType" onchange="window.updatePeriodNumbers('selPeriodType','selPeriodNum')" aria-label="نوع الفترة"><option value="Y">سنوي</option><option value="H">نصف سنوي</option><option value="Q">ربع سنوي</option><option value="M" selected>شهري</option></select>
+                <label data-i18n="num">رقم:</label><select id="selPeriodNum" aria-label="رقم الفترة"></select>
                 <div class="period-actions">
                     <button class="btn btn-primary btn-save" onclick="window.loadPeriodData()" data-i18n="load">🔄 تحميل</button>
                     <button class="btn btn-success btn-save" onclick="window.savePeriodData()" data-i18n="save">💾 حفظ</button>
@@ -274,10 +297,10 @@
                 <div class="card"><div class="card-header" data-i18n="fin_ratios">النسب المالية</div><div id="ratiosBody"></div></div>
             </div>
 
-            <!-- NEW: PROFESSIONAL FINANCIAL STATEMENTS SCREEN -->
+            <!-- PROFESSIONAL FINANCIAL STATEMENTS SCREEN -->
             <div id="financialStatements" class="screen">
                 <div style="display:flex; gap:15px; margin-bottom:20px; flex-wrap:wrap; align-items:flex-end; padding:20px; background:var(--surface); border-radius:12px; border:1px solid var(--border);">
-                    <div style="flex:1; min-width: 140px;">
+                    <div style="flex:1; min-width: 200px;">
                         <label style="display:block; color:var(--primary); font-weight:bold; font-size:12px;">الفترة الأساسية</label>
                         <select id="fsYear"></select>
                         <select id="fsType" onchange="window.updatePeriodNumbers('fsType','fsNum')"><option value="Y">سنوي</option><option value="H">نصف سنوي</option><option value="Q">ربع سنوي</option><option value="M" selected>شهري</option></select>
@@ -286,14 +309,20 @@
                     <div style="flex:1; min-width: 140px;">
                         <label style="display:block; color:var(--danger); font-weight:bold; font-size:12px;">مقارنة 1</label>
                         <select id="fsComp1"></select>
+                        <select id="fsComp1Type" onchange="window.updatePeriodNumbers('fsComp1Type','fsComp1Num')"><option value="Y">سنوي</option><option value="H">نصف سنوي</option><option value="Q">ربع سنوي</option><option value="M" selected>شهري</option></select>
+                        <select id="fsComp1Num"></select>
                     </div>
                     <div style="flex:1; min-width: 140px;">
                         <label style="display:block; color:var(--danger); font-weight:bold; font-size:12px;">مقارنة 2</label>
                         <select id="fsComp2"></select>
+                        <select id="fsComp2Type" onchange="window.updatePeriodNumbers('fsComp2Type','fsComp2Num')"><option value="Y">سنوي</option><option value="H">نصف سنوي</option><option value="Q">ربع سنوي</option><option value="M" selected>شهري</option></select>
+                        <select id="fsComp2Num"></select>
                     </div>
                     <div style="flex:1; min-width: 140px;">
                         <label style="display:block; color:var(--danger); font-weight:bold; font-size:12px;">مقارنة 3</label>
                         <select id="fsComp3"></select>
+                        <select id="fsComp3Type" onchange="window.updatePeriodNumbers('fsComp3Type','fsComp3Num')"><option value="Y">سنوي</option><option value="H">نصف سنوي</option><option value="Q">ربع سنوي</option><option value="M" selected>شهري</option></select>
+                        <select id="fsComp3Num"></select>
                     </div>
                     <div style="display:flex; gap:10px; align-self: flex-end;">
                         <button class="btn btn-primary" onclick="window.generateFS()">عرض القوائم</button>
@@ -353,7 +382,19 @@
         const db = getFirestore(app);
         const loadingMsg = document.getElementById('loadingMsg');
         
-        function fmt(num) { if (isNaN(num) || num === null) return "0"; return Number(num).toLocaleString('en-US'); }
+        // ============ أدوات مساعدة ============
+        function fmt(num) { 
+            if (isNaN(num) || num === null) return "0"; 
+            return Number(num).toLocaleString('en-US'); 
+        }
+
+        // إزالة HTML خطرة من إدخال المستخدم — حماية من XSS
+        function escapeHtml(str) {
+            if (typeof str !== 'string') return '';
+            const div = document.createElement('div');
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        }
 
         function showToast(message, type = 'error') {
             const container = document.getElementById('toast-container');
@@ -361,7 +402,40 @@
             toast.className = `toast toast-${type}`;
             toast.innerText = message;
             container.appendChild(toast);
-            setTimeout(() => { toast.remove(); }, 4000);
+            setTimeout(() => { 
+                toast.style.animation = 'slideOut 0.3s ease-in forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // حوار تأكيد مخصص بدلاً من confirm() الأصلي
+        function showConfirm(message) {
+            return new Promise((resolve) => {
+                const overlay = document.createElement('div');
+                overlay.className = 'confirm-overlay';
+                overlay.innerHTML = `
+                    <div class="confirm-box">
+                        <p>${escapeHtml(message)}</p>
+                        <div class="btn-group">
+                            <button class="btn btn-danger" id="confirmNo">${i18n[currentLang].no}</button>
+                            <button class="btn btn-success" id="confirmYes">${i18n[currentLang].yes}</button>
+                        </div>
+                    </div>`;
+                document.body.appendChild(overlay);
+                overlay.querySelector('#confirmYes').onclick = () => { overlay.remove(); resolve(true); };
+                overlay.querySelector('#confirmNo').onclick = () => { overlay.remove(); resolve(false); };
+                overlay.addEventListener('keydown', (e) => { if(e.key === 'Escape') { overlay.remove(); resolve(false); } });
+                overlay.querySelector('#confirmNo').focus();
+            });
+        }
+
+        // Debounce — منع التنفيذ المتكرر للحسابات
+        function debounce(fn, delay = 150) {
+            let timer = null;
+            return function(...args) {
+                clearTimeout(timer);
+                timer = setTimeout(() => fn.apply(this, args), delay);
+            };
         }
 
         let currentSession = JSON.parse(sessionStorage.getItem('zad_session')) || null;
@@ -398,9 +472,11 @@
                 liquidity: "السيولة", profit_margin: "هامش الربح", roi: "العائد", debts: "الديون",
                 liq_desc: "من كل 100 ريال يتبقى {margin}.", roi_desc: "كل 100 ريال عادت بـ {roi}.",
                 saved: "تم الحفظ بنجاح!", error: "خطأ في النظام", no_data_err: "لا بيانات!", 
-                import_struct: "استيراد الهيكل؟", yes: "نعم", no: "لا",
+                import_struct: "استيراد الهيكل من الفترة السابقة؟", yes: "نعم", no: "لا",
                 login_empty: "يرجى إدخال اسم المستخدم وكلمة المرور", 
-                db_permission_error: "خطأ: قواعد أمان Firebase تمنع الوصول. اذهب لـ Firestore -> Rules واجعلها: allow read, write: if true;"
+                db_permission_error: "خطأ: قواعد أمان Firebase تمنع الوصول. اذهب لـ Firestore -> Rules واجعلها: allow read, write: if true;",
+                delete_row_q: "حذف هذا الصف؟",
+                hash_error: "خطأ في تشفير كلمة المرور"
             },
             en: {
                 login_title: "Zad Al-Joud Fast Food\nFinancial Results", login_sub: "Please login to access the accounting system",
@@ -432,105 +508,762 @@
                 liquidity: "Liquidity", profit_margin: "Profit Margin", roi: "ROI", debts: "Debts",
                 liq_desc: "For every 100 SAR, {margin} remains.", roi_desc: "Every 100 SAR returned {roi}.",
                 saved: "Saved successfully!", error: "System Error", no_data_err: "No data!",
-                import_struct: "Import structure?", yes: "Yes", no: "No",
+                import_struct: "Import structure from previous period?", yes: "Yes", no: "No",
                 login_empty: "Please enter username and password", 
-                db_permission_error: "Error: Firebase Security Rules block access. Go to Firestore -> Rules and set: allow read, write: if true;"
+                db_permission_error: "Error: Firebase Security Rules block access. Go to Firestore -> Rules and set: allow read, write: if true;",
+                delete_row_q: "Delete this row?",
+                hash_error: "Password hashing error"
             }
         };
 
         function applyTranslations() {
-            document.querySelectorAll('[data-i18n]').forEach(el => { const key = el.getAttribute('data-i18n'); if (i18n[currentLang][key]) el.innerText = i18n[currentLang][key]; });
-            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { const key = el.getAttribute('data-i18n-placeholder'); if (i18n[currentLang][key]) el.placeholder = i18n[currentLang][key]; });
-            document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr'; document.documentElement.lang = currentLang;
+            document.querySelectorAll('[data-i18n]').forEach(el => { 
+                const key = el.getAttribute('data-i18n'); 
+                if (i18n[currentLang][key]) el.innerText = i18n[currentLang][key]; 
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { 
+                const key = el.getAttribute('data-i18n-placeholder'); 
+                if (i18n[currentLang][key]) el.placeholder = i18n[currentLang][key]; 
+            });
+            document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr'; 
+            document.documentElement.lang = currentLang;
         }
 
-        window.toggleLanguage = function() { currentLang = currentLang === 'ar' ? 'en' : 'ar'; localStorage.setItem('app_lang', currentLang); applyTranslations(); calculateLocal(); };
+        window.toggleLanguage = function() { 
+            currentLang = currentLang === 'ar' ? 'en' : 'ar'; 
+            localStorage.setItem('app_lang', currentLang); 
+            applyTranslations(); 
+            calculateLocal(); 
+        };
 
-        async function doLogin() {
-            const username = document.getElementById('loginUser').value; const password = document.getElementById('loginPass').value;
-            if(!username || !password) { showToast(i18n[currentLang].login_empty, 'warning'); return; }
-            document.getElementById('loginError').style.display = 'none'; document.getElementById('loginBtn').innerText = '...';
+        // ============ تشفير بسيط لكلمات المرور ============
+        async function hashPassword(password) {
             try {
-                if(username === 'admin') { try { const adminDoc = await getDoc(doc(db, "app_users", "admin")); if(!adminDoc.exists()) { await setDoc(doc(db, "app_users", "admin"), { password: "admin123", role: "admin" }); } } catch(e) { if(e.code === 'permission-denied') { showToast(i18n[currentLang].db_permission_error, 'error'); } } }
-                const userDoc = await getDoc(doc(db, "app_users", username));
-                if (userDoc.exists() && userDoc.data().password === password) { currentSession = { user: username, role: userDoc.data().role }; sessionStorage.setItem('zad_session', JSON.stringify(currentSession)); startApp(); } else { document.getElementById('loginError').style.display = 'block'; }
-            } catch(e) { if(e.code === 'permission-denied') { showToast(i18n[currentLang].db_permission_error, 'error'); } else { showToast(i18n[currentLang].error, 'error'); } } finally { document.getElementById('loginBtn').innerText = i18n[currentLang].login_btn; }
+                const encoder = new TextEncoder();
+                const data = encoder.encode(password + '_zad_salt_2024');
+                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            } catch(e) {
+                // Fallback بسيط إذا لم يتوفر crypto.subtle
+                return btoa(password + '_zad_salt_2024');
+            }
         }
-        function doLogout() { sessionStorage.removeItem('zad_session'); currentSession = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('loginScreen').style.display = 'flex'; }
-        function startApp() { if (!currentSession) return; document.getElementById('loginScreen').style.display = 'none'; document.getElementById('appContainer').style.display = 'flex'; document.getElementById('appContainer').className = `role-${currentSession.role}`; document.getElementById('currentUserDisplay').innerText = `${i18n[currentLang].username}: ${currentSession.user}`; loadUsersTable(); calculateLocal(); }
-        async function loadUsersTable() { const tbody = document.getElementById('usersTableBody'); tbody.innerHTML = ''; try { const q = await getDocs(collection(db, "app_users")); q.forEach((d) => { const u = d.data(); const roleName = u.role === 'admin' ? (currentLang==='ar'?'مدير':'Admin') : u.role === 'accountant' ? (currentLang==='ar'?'محاسب':'Accountant') : (currentLang==='ar'?'مشاهد':'Viewer'); const delBtn = d.id === 'admin' ? '' : `<button class="btn btn-danger btn-small btn-del" onclick="window.deleteUser('${d.id}')">${currentLang==='ar'?'حذف':'Delete'}</button>`; tbody.innerHTML += `<tr><td>${d.id}</td><td>${roleName}</td><td>${delBtn}</td></tr>`; }); } catch(e) {} }
-        async function addUser() { const name = document.getElementById('newUserName').value; const pass = document.getElementById('newUserPass').value; const role = document.getElementById('newUserRole').value; if(!name || !pass) { showToast(i18n[currentLang].login_empty, 'warning'); return; } try { await setDoc(doc(db, "app_users", name), { password: pass, role: role }); document.getElementById('newUserName').value = ''; document.getElementById('newUserPass').value = ''; loadUsersTable(); showToast(i18n[currentLang].saved, 'success'); } catch(e) { showToast(i18n[currentLang].db_permission_error, 'error'); } }
-        async function deleteUser(username) { if(confirm(`${currentLang==='ar'?'حذف':'Delete'} ${username}?`)) { try { await deleteDoc(doc(db, "app_users", username)); loadUsersTable(); } catch(e) { showToast(i18n[currentLang].error, 'error'); } } }
 
-        async function fetchDataFromCloud(key) { try { const docRef = doc(db, "financial_periods", key); const docSnap = await getDoc(docRef); return docSnap.exists() ? docSnap.data() : null; } catch(e) { return null; } }
-        function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); document.getElementById(id).classList.add('active'); event.currentTarget.classList.add('active'); calculateLocal(); }
-        function updatePeriodNumbers(typeId, numId) { typeId = typeId || 'selPeriodType'; numId = numId || 'selPeriodNum'; const t = document.getElementById(typeId).value; const n = document.getElementById(numId); n.innerHTML = ''; let c = t==='Y'?1:t==='H'?2:t==='Q'?4:12; for(let i=1;i<=c;i++) n.innerHTML+=`<option value="${i}">${i}</option>`; }
+        // ============ نظام الدخول ============
+        async function doLogin() {
+            const username = document.getElementById('loginUser').value.trim(); 
+            const password = document.getElementById('loginPass').value;
+            if(!username || !password) { showToast(i18n[currentLang].login_empty, 'warning'); return; }
+            
+            document.getElementById('loginError').style.display = 'none'; 
+            document.getElementById('loginBtn').disabled = true;
+            document.getElementById('loginBtn').innerText = '...';
+            
+            try {
+                // إنشاء حساب المدير الافتراضي إذا لم يكن موجوداً
+                if(username === 'admin') { 
+                    try { 
+                        const adminDoc = await getDoc(doc(db, "app_users", "admin")); 
+                        if(!adminDoc.exists()) { 
+                            const hashedPass = await hashPassword("admin123");
+                            await setDoc(doc(db, "app_users", "admin"), { password: hashedPass, role: "admin", hashed: true }); 
+                        } 
+                    } catch(e) { 
+                        if(e.code === 'permission-denied') { 
+                            showToast(i18n[currentLang].db_permission_error, 'error'); 
+                        } 
+                    } 
+                }
+                
+                const userDoc = await getDoc(doc(db, "app_users", username));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    let passwordMatch = false;
+                    
+                    // دعم كلمات المرور المشفرة وغير المشفرة للتوافق مع البيانات القديمة
+                    if (userData.hashed) {
+                        const hashedInput = await hashPassword(password);
+                        passwordMatch = userData.password === hashedInput;
+                    } else {
+                        passwordMatch = userData.password === password;
+                        // ترقية كلمة المرور للتشفير
+                        if (passwordMatch) {
+                            const hashedPass = await hashPassword(password);
+                            await setDoc(doc(db, "app_users", username), { ...userData, password: hashedPass, hashed: true });
+                        }
+                    }
+                    
+                    if (passwordMatch) {
+                        currentSession = { user: username, role: userData.role }; 
+                        sessionStorage.setItem('zad_session', JSON.stringify(currentSession)); 
+                        startApp(); 
+                    } else {
+                        document.getElementById('loginError').style.display = 'block'; 
+                    }
+                } else { 
+                    document.getElementById('loginError').style.display = 'block'; 
+                }
+            } catch(e) { 
+                if(e.code === 'permission-denied') { 
+                    showToast(i18n[currentLang].db_permission_error, 'error'); 
+                } else { 
+                    showToast(i18n[currentLang].error, 'error'); 
+                    console.error(e);
+                } 
+            } finally { 
+                document.getElementById('loginBtn').disabled = false;
+                document.getElementById('loginBtn').innerText = i18n[currentLang].login_btn; 
+            }
+        }
+        
+        function doLogout() { 
+            sessionStorage.removeItem('zad_session'); 
+            currentSession = null; 
+            document.getElementById('appContainer').style.display = 'none'; 
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('loginPass').value = '';
+        }
+        
+        function startApp() { 
+            if (!currentSession) return; 
+            document.getElementById('loginScreen').style.display = 'none'; 
+            document.getElementById('appContainer').style.display = 'flex'; 
+            document.getElementById('appContainer').className = `role-${currentSession.role}`; 
+            document.getElementById('currentUserDisplay').innerText = `${i18n[currentLang].username}: ${currentSession.user}`; 
+            loadUsersTable(); 
+            calculateLocal(); 
+        }
+        
+        async function loadUsersTable() { 
+            const tbody = document.getElementById('usersTableBody'); 
+            tbody.innerHTML = ''; 
+            try { 
+                const q = await getDocs(collection(db, "app_users")); 
+                q.forEach((d) => { 
+                    const u = d.data(); 
+                    const roleName = u.role === 'admin' ? (currentLang==='ar'?'مدير':'Admin') : u.role === 'accountant' ? (currentLang==='ar'?'محاسب':'Accountant') : (currentLang==='ar'?'مشاهد':'Viewer'); 
+                    const delBtn = d.id === 'admin' ? '' : `<button class="btn btn-danger btn-small btn-del" onclick="window.deleteUser('${escapeHtml(d.id)}')">${currentLang==='ar'?'حذف':'Delete'}</button>`; 
+                    tbody.innerHTML += `<tr><td>${escapeHtml(d.id)}</td><td>${roleName}</td><td>${delBtn}</td></tr>`; 
+                }); 
+            } catch(e) {} 
+        }
+        
+        async function addUser() { 
+            const name = document.getElementById('newUserName').value.trim(); 
+            const pass = document.getElementById('newUserPass').value; 
+            const role = document.getElementById('newUserRole').value; 
+            if(!name || !pass) { showToast(i18n[currentLang].login_empty, 'warning'); return; } 
+            try { 
+                const hashedPass = await hashPassword(pass);
+                await setDoc(doc(db, "app_users", name), { password: hashedPass, role: role, hashed: true }); 
+                document.getElementById('newUserName').value = ''; 
+                document.getElementById('newUserPass').value = ''; 
+                loadUsersTable(); 
+                showToast(i18n[currentLang].saved, 'success'); 
+            } catch(e) { 
+                showToast(i18n[currentLang].db_permission_error, 'error'); 
+            } 
+        }
+        
+        async function deleteUser(username) { 
+            if(await showConfirm(`${currentLang==='ar'?'حذف':'Delete'} ${username}?`)) { 
+                try { 
+                    await deleteDoc(doc(db, "app_users", username)); 
+                    loadUsersTable(); 
+                } catch(e) { 
+                    showToast(i18n[currentLang].error, 'error'); 
+                } 
+            }
+        }
+
+        // ============ البيانات ============
+        async function fetchDataFromCloud(key) { 
+            try { 
+                const docRef = doc(db, "financial_periods", key); 
+                const docSnap = await getDoc(docRef); 
+                return docSnap.exists() ? docSnap.data() : null; 
+            } catch(e) { 
+                console.error('Fetch error:', e);
+                return null; 
+            } 
+        }
+        
+        // إصلاح حرج: تمرير العنصر صراحة بدلاً من الاعتماد على event الضمني
+        function showScreen(id, navElement) { 
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); 
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); 
+            document.getElementById(id).classList.add('active'); 
+            if (navElement) navElement.classList.add('active');
+            calculateLocal(); 
+        }
+        
+        function updatePeriodNumbers(typeId, numId) { 
+            typeId = typeId || 'selPeriodType'; 
+            numId = numId || 'selPeriodNum'; 
+            const typeEl = document.getElementById(typeId);
+            const numEl = document.getElementById(numId);
+            if (!typeEl || !numEl) return;
+            const t = typeEl.value; 
+            numEl.innerHTML = ''; 
+            let c = t==='Y'?1:t==='H'?2:t==='Q'?4:12; 
+            for(let i=1;i<=c;i++) numEl.innerHTML+=`<option value="${i}">${i}</option>`; 
+        }
+        
         function getKey(y,t,n) { return `ZAD_${y}_${t}_${n}`; }
         function getCurrentKey() { return getKey(document.getElementById('selYear').value, document.getElementById('selPeriodType').value, document.getElementById('selPeriodNum').value); }
-        function populateYearDropdowns() { const cy = new Date().getFullYear(); const sy = cy - 5; const ey = cy + 10; const ids = ['selYear', 'baseYear', 'c1Year', 'c2Year', 'c3Year', 'repYear', 'fsYear', 'fsComp1', 'fsComp2', 'fsComp3']; ids.forEach(id => { const s = document.getElementById(id); if(!s) return; s.innerHTML=''; for(let y=ey;y>=sy;y--) { const o = document.createElement('option'); o.value=y; o.text=y; if((id==='selYear'||id==='baseYear'||id==='repYear'||id==='fsYear')&&y===cy) o.selected=true; else if((id==='c1Year'||id==='fsComp1')&&y===cy-1) o.selected=true; else if((id==='c2Year'||id==='fsComp2')&&y===cy-2) o.selected=true; else if((id==='c3Year'||id==='fsComp3')&&y===cy-3) o.selected=true; s.appendChild(o); } }); }
+        
+        function populateYearDropdowns() { 
+            const cy = new Date().getFullYear(); 
+            const sy = cy - 5; 
+            const ey = cy + 10; 
+            const ids = ['selYear', 'baseYear', 'c1Year', 'c2Year', 'c3Year', 'repYear', 'fsYear', 'fsComp1', 'fsComp2', 'fsComp3']; 
+            ids.forEach(id => { 
+                const s = document.getElementById(id); 
+                if(!s) return; 
+                s.innerHTML=''; 
+                for(let y=ey;y>=sy;y--) { 
+                    const o = document.createElement('option'); 
+                    o.value=y; o.text=y; 
+                    if((id==='selYear'||id==='baseYear'||id==='repYear'||id==='fsYear')&&y===cy) o.selected=true; 
+                    else if((id==='c1Year'||id==='fsComp1')&&y===cy-1) o.selected=true; 
+                    else if((id==='c2Year'||id==='fsComp2')&&y===cy-2) o.selected=true; 
+                    else if((id==='c3Year'||id==='fsComp3')&&y===cy-3) o.selected=true; 
+                    s.appendChild(o); 
+                } 
+            }); 
+        }
 
-        function addRow(tableId, type='none', isNonCashChecked=false, name="", amount=0, assetTypeVal='other') { const tbody = document.getElementById(tableId).querySelector('tbody'); const tr = document.createElement('tr'); let cells = `<td><input type="text" style="width:100%; background:var(--bg-dark); color:var(--text-main); border-color:var(--border);" value="${name}"></td><td><input type="number" style="width:100%; background:var(--bg-dark); color:var(--text-main); border-color:var(--border);" value="${amount}" onchange="window.calculateLocal()"></td>`; if(type==='noncash') cells += `<td class="checkbox-group"><input type="checkbox" onchange="window.calculateLocal()" ${isNonCashChecked?'checked':''}> <span data-i18n="noncash_q">${i18n[currentLang].noncash_q}</span></td>`; else if(type==='asset') cells += `<td><select onchange="window.calculateLocal()" style="background:var(--bg-dark); color:var(--text-main); border-color:var(--border);"><option value="other" ${assetTypeVal==='other'?'selected':''}>${currentLang==='ar'?'أخرى':'Other'}</option><option value="fixed" ${assetTypeVal==='fixed'?'selected':''}>${currentLang==='ar'?'ثابتة':'Fixed'}</option><option value="acc_dep" ${assetTypeVal==='acc_dep'?'selected':''}>${currentLang==='ar'?'مجمع إهلاك':'Acc Dep'}</option><option value="intan" ${assetTypeVal==='intan'?'selected':''}>${currentLang==='ar'?'غير ملموسة':'Intangible'}</option><option value="acc_amort" ${assetTypeVal==='acc_amort'?'selected':''}>${currentLang==='ar'?'مجمع إطفاء':'Acc Amort'}</option></select></td>`; cells += `<td><button class="btn btn-danger btn-small btn-del" onclick="this.parentElement.parentElement.remove();window.calculateLocal()">${currentLang==='ar'?'حذف':'Del'}</button></td>`; tr.innerHTML = cells; tbody.appendChild(tr); }
-        function getTableData(tableId, type) { const rows = document.getElementById(tableId).querySelector('tbody').rows; let data=[]; for(let r of rows) { let obj = { name: r.cells[0].querySelector('input').value, amount: parseFloat(r.cells[1].querySelector('input').value)||0 }; if(type==='noncash') obj.isNonCash = r.cells[2].querySelector('input').checked; if(type==='asset') obj.assetType = r.cells[2].querySelector('select').value; data.push(obj); } return data; }
+        // ============ إدارة الجداول ============
+        function addRow(tableId, type='none', isNonCashChecked=false, name="", amount=0, assetTypeVal='other') { 
+            const tbody = document.getElementById(tableId).querySelector('tbody'); 
+            const tr = document.createElement('tr'); 
+            // إصلاح XSS: استخدام escapeHtml لاسم البند
+            const safeName = escapeHtml(name);
+            let cells = `<td><input type="text" style="width:100%; background:var(--bg-dark); color:var(--text-main); border-color:var(--border);" value="${safeName}"></td><td><input type="number" style="width:100%; background:var(--bg-dark); color:var(--text-main); border-color:var(--border);" value="${amount}" onchange="window.calculateLocal()"></td>`; 
+            if(type==='noncash') cells += `<td class="checkbox-group"><input type="checkbox" onchange="window.calculateLocal()" ${isNonCashChecked?'checked':''}> <span data-i18n="noncash_q">${i18n[currentLang].noncash_q}</span></td>`; 
+            else if(type==='asset') cells += `<td><select onchange="window.calculateLocal()" style="background:var(--bg-dark); color:var(--text-main); border-color:var(--border);"><option value="other" ${assetTypeVal==='other'?'selected':''}>${currentLang==='ar'?'أخرى':'Other'}</option><option value="fixed" ${assetTypeVal==='fixed'?'selected':''}>${currentLang==='ar'?'ثابتة':'Fixed'}</option><option value="acc_dep" ${assetTypeVal==='acc_dep'?'selected':''}>${currentLang==='ar'?'مجمع إهلاك':'Acc Dep'}</option><option value="intan" ${assetTypeVal==='intan'?'selected':''}>${currentLang==='ar'?'غير ملموسة':'Intangible'}</option><option value="acc_amort" ${assetTypeVal==='acc_amort'?'selected':''}>${currentLang==='ar'?'مجمع إطفاء':'Acc Amort'}</option></select></td>`; 
+            cells += `<td><button class="btn btn-danger btn-small btn-del" onclick="window.deleteRow(this)">${currentLang==='ar'?'حذف':'Del'}</button></td>`; 
+            tr.innerHTML = cells; 
+            tbody.appendChild(tr); 
+        }
+
+        // حذف صف مع تأكيد
+        async function deleteRow(btn) {
+            const L = i18n[currentLang];
+            if (await showConfirm(L.delete_row_q)) {
+                btn.closest('tr').remove();
+                calculateLocal();
+            }
+        }
+        
+        function getTableData(tableId, type) { 
+            const rows = document.getElementById(tableId).querySelector('tbody').rows; 
+            let data=[]; 
+            for(let r of rows) { 
+                let obj = { 
+                    name: r.cells[0].querySelector('input').value, 
+                    amount: parseFloat(r.cells[1].querySelector('input').value)||0 
+                }; 
+                if(type==='noncash') obj.isNonCash = r.cells[2].querySelector('input').checked; 
+                if(type==='asset') obj.assetType = r.cells[2].querySelector('select').value; 
+                data.push(obj); 
+            } 
+            return data; 
+        }
+        
         function clearTable(tableId) { document.getElementById(tableId).querySelector('tbody').innerHTML=''; }
-        function populateTable(tableId, data, type) { clearTable(tableId); if(!data) return; data.forEach(item => { if(type==='noncash') addRow(tableId,'noncash',item.isNonCash,item.name,item.amount); else if(type==='asset') addRow(tableId,'asset',false,item.name,item.amount,item.assetType); else addRow(tableId,'none',false,item.name,item.amount); }); }
-        function sumTable(tableId, checkNonCash=false) { let total=0, nonCash=0; const rows = document.getElementById(tableId).querySelector('tbody').rows; for(let r of rows) { const val = parseFloat(r.cells[1].querySelector('input').value)||0; total+=val; if(checkNonCash && r.cells[2].querySelector('input') && r.cells[2].querySelector('input').checked) nonCash+=val; } return {total, nonCash}; }
+        
+        function populateTable(tableId, data, type) { 
+            clearTable(tableId); 
+            if(!data) return; 
+            data.forEach(item => { 
+                if(type==='noncash') addRow(tableId,'noncash',item.isNonCash,item.name,item.amount); 
+                else if(type==='asset') addRow(tableId,'asset',false,item.name,item.amount,item.assetType); 
+                else addRow(tableId,'none',false,item.name,item.amount); 
+            }); 
+        }
+        
+        function sumTable(tableId, checkNonCash=false) { 
+            let total=0, nonCash=0; 
+            const rows = document.getElementById(tableId).querySelector('tbody').rows; 
+            for(let r of rows) { 
+                const val = parseFloat(r.cells[1].querySelector('input').value)||0; 
+                total+=val; 
+                if(checkNonCash && r.cells[2] && r.cells[2].querySelector('input[type="checkbox"]') && r.cells[2].querySelector('input[type="checkbox"]').checked) nonCash+=val; 
+            } 
+            return {total, nonCash}; 
+        }
 
-        function getFinancialSummary(data) { if(!data || !data.inc) return null; const sum = (arr) => arr.reduce((a,b)=>a+(b.amount||0),0); const sumNC = (arr) => arr.reduce((a,b)=>a+(b.isNonCash?(b.amount||0):0),0); const rev=sum(data.inc.rev), cogs=sum(data.inc.cogs), gp=rev-cogs, opex=sum(data.inc.opex), ebitda=gp-opex, dep=sum(data.inc.dep), ebit=ebitda-dep, tax=sum(data.inc.tax), np=ebit-tax; const totalNonCash = sumNC(data.inc.rev)+sumNC(data.inc.cogs)+sumNC(data.inc.opex)+sumNC(data.inc.dep)+sumNC(data.inc.tax); const ca=sum(data.bal.ca); let fixed=0, accDep=0, intan=0, accAmort=0, otherNca=0; data.bal.nca.forEach(i => { if(i.assetType==='fixed') fixed+=i.amount; else if(i.assetType==='acc_dep') accDep+=i.amount; else if(i.assetType==='intan') intan+=i.amount; else if(i.assetType==='acc_amort') accAmort+=i.amount; else otherNca+=i.amount; }); const tnca=(fixed-accDep)+(intan-accAmort)+otherNca, ta=ca+tnca, tl=sum(data.bal.liab), teq=sum(data.bal.eq), tle=tl+teq; const cfOp=np+totalNonCash+sum(data.cf.op), cfInv=sum(data.cf.inv), cfFin=sum(data.cf.fin), cfNet=cfOp+cfInv+cfFin, cfEnd=data.cf.beg+cfNet; return { rev, cogs, gp, opex, ebitda, dep, ebit, tax, np, ca, tnca, ta, tl, teq, tle, cfOp, cfInv, cfFin, cfNet, cfEnd }; }
+        function getFinancialSummary(data) { 
+            if(!data || !data.inc) return null; 
+            const sum = (arr) => (arr||[]).reduce((a,b)=>a+(b.amount||0),0); 
+            const sumNC = (arr) => (arr||[]).reduce((a,b)=>a+(b.isNonCash?(b.amount||0):0),0); 
+            const rev=sum(data.inc.rev), cogs=sum(data.inc.cogs), gp=rev-cogs, opex=sum(data.inc.opex), ebitda=gp-opex, dep=sum(data.inc.dep), ebit=ebitda-dep, tax=sum(data.inc.tax), np=ebit-tax; 
+            const totalNonCash = sumNC(data.inc.rev)+sumNC(data.inc.cogs)+sumNC(data.inc.opex)+sumNC(data.inc.dep)+sumNC(data.inc.tax); 
+            const ca=sum(data.bal.ca); 
+            let fixed=0, accDep=0, intan=0, accAmort=0, otherNca=0; 
+            (data.bal.nca||[]).forEach(i => { 
+                if(i.assetType==='fixed') fixed+=i.amount; 
+                else if(i.assetType==='acc_dep') accDep+=i.amount; 
+                else if(i.assetType==='intan') intan+=i.amount; 
+                else if(i.assetType==='acc_amort') accAmort+=i.amount; 
+                else otherNca+=i.amount; 
+            }); 
+            const tnca=(fixed-accDep)+(intan-accAmort)+otherNca, ta=ca+tnca, tl=sum(data.bal.liab), teq=sum(data.bal.eq), tle=tl+teq; 
+            const cfOp=np+totalNonCash+sum(data.cf.op), cfInv=sum(data.cf.inv), cfFin=sum(data.cf.fin), cfNet=cfOp+cfInv+cfFin, cfEnd=(data.cf.beg||0)+cfNet; 
+            return { rev, cogs, gp, opex, ebitda, dep, ebit, tax, np, ca, tnca, ta, tl, teq, tle, cfOp, cfInv, cfFin, cfNet, cfEnd }; 
+        }
 
-        async function savePeriodData() { if(currentSession.role === 'viewer') return; loadingMsg.style.display = 'block'; const key = getCurrentKey(); const data = { inc: { rev: getTableData('tbl_rev','noncash'), cogs: getTableData('tbl_cogs','noncash'), opex: getTableData('tbl_opex','noncash'), dep: getTableData('tbl_dep','noncash'), tax: getTableData('tbl_tax','noncash') }, bal: { ca: getTableData('tbl_ca','none'), nca: getTableData('tbl_nca','asset'), liab: getTableData('tbl_liab','none'), eq: getTableData('tbl_eq','none') }, cf: { op: getTableData('tbl_cf_op','none'), inv: getTableData('tbl_cf_inv','none'), fin: getTableData('tbl_cf_fin','none'), beg: parseFloat(document.getElementById('cf_beg').value)||0 } }; try { await setDoc(doc(db, "financial_periods", key), data); showToast(i18n[currentLang].saved, 'success'); } catch (e) { showToast(i18n[currentLang].db_permission_error, 'error'); } finally { loadingMsg.style.display = 'none'; } }
-        function zeroOutData(data) { let d = JSON.parse(JSON.stringify(data)); const zeroArr = (arr) => arr.forEach(i => i.amount=0); [d.inc.rev, d.inc.cogs, d.inc.opex, d.inc.dep, d.inc.tax, d.bal.ca, d.bal.nca, d.bal.liab, d.bal.eq, d.cf.op, d.cf.inv, d.cf.fin].forEach(zeroArr); d.cf.beg = 0; return d; }
-        function getPrevKey() { let y=parseInt(document.getElementById('selYear').value), t=document.getElementById('selPeriodType').value, n=parseInt(document.getElementById('selPeriodNum').value); let pN=n-1, pY=y; if(pN===0){ pY=y-1; pN=t==='H'?2:t==='Q'?4:12; } return getKey(pY,t,pN); }
-        async function loadPeriodData() { loadingMsg.style.display = 'block'; const key = getCurrentKey(); try { let data = await fetchDataFromCloud(key); if(!data) { const prevKey = getPrevKey(); let prevData = await fetchDataFromCloud(prevKey); if(prevData) { if(confirm(i18n[currentLang].import_struct)) data=zeroOutData(prevData); else { return; } } else { showToast(i18n[currentLang].no_data_err, 'warning'); return; } } populateTable('tbl_rev',data.inc.rev,'noncash'); populateTable('tbl_cogs',data.inc.cogs,'noncash'); populateTable('tbl_opex',data.inc.opex,'noncash'); populateTable('tbl_dep',data.inc.dep,'noncash'); populateTable('tbl_tax',data.inc.tax,'noncash'); populateTable('tbl_ca',data.bal.ca,'none'); populateTable('tbl_nca',data.bal.nca,'asset'); populateTable('tbl_liab',data.bal.liab,'none'); populateTable('tbl_eq',data.bal.eq,'none'); populateTable('tbl_cf_op',data.cf.op,'none'); populateTable('tbl_cf_inv',data.cf.inv,'none'); populateTable('tbl_cf_fin',data.cf.fin,'none'); document.getElementById('cf_beg').value=data.cf.beg; calculateLocal(); } catch(e) { showToast(i18n[currentLang].error, 'error'); } finally { loadingMsg.style.display = 'none'; } }
+        // ============ الحفظ والتحميل ============
+        async function savePeriodData() { 
+            if(currentSession.role === 'viewer') return; 
+            loadingMsg.style.display = 'block'; 
+            const key = getCurrentKey(); 
+            const data = { 
+                inc: { rev: getTableData('tbl_rev','noncash'), cogs: getTableData('tbl_cogs','noncash'), opex: getTableData('tbl_opex','noncash'), dep: getTableData('tbl_dep','noncash'), tax: getTableData('tbl_tax','noncash') }, 
+                bal: { ca: getTableData('tbl_ca','none'), nca: getTableData('tbl_nca','asset'), liab: getTableData('tbl_liab','none'), eq: getTableData('tbl_eq','none') }, 
+                cf: { op: getTableData('tbl_cf_op','none'), inv: getTableData('tbl_cf_inv','none'), fin: getTableData('tbl_cf_fin','none'), beg: parseFloat(document.getElementById('cf_beg').value)||0 } 
+            }; 
+            try { 
+                await setDoc(doc(db, "financial_periods", key), data); 
+                showToast(i18n[currentLang].saved, 'success'); 
+            } catch (e) { 
+                showToast(i18n[currentLang].db_permission_error, 'error'); 
+                console.error(e);
+            } finally { 
+                loadingMsg.style.display = 'none'; 
+            } 
+        }
+        
+        function zeroOutData(data) { 
+            let d = JSON.parse(JSON.stringify(data)); 
+            const zeroArr = (arr) => (arr||[]).forEach(i => i.amount=0); 
+            [d.inc.rev, d.inc.cogs, d.inc.opex, d.inc.dep, d.inc.tax, d.bal.ca, d.bal.nca, d.bal.liab, d.bal.eq, d.cf.op, d.cf.inv, d.cf.fin].forEach(zeroArr); 
+            d.cf.beg = 0; 
+            return d; 
+        }
+        
+        function getPrevKey() { 
+            let y=parseInt(document.getElementById('selYear').value), t=document.getElementById('selPeriodType').value, n=parseInt(document.getElementById('selPeriodNum').value); 
+            let pN=n-1, pY=y; 
+            if(pN===0){ pY=y-1; pN=t==='H'?2:t==='Q'?4:12; } 
+            return getKey(pY,t,pN); 
+        }
+        
+        async function loadPeriodData() { 
+            loadingMsg.style.display = 'block'; 
+            const key = getCurrentKey(); 
+            try { 
+                let data = await fetchDataFromCloud(key); 
+                if(!data) { 
+                    const prevKey = getPrevKey(); 
+                    let prevData = await fetchDataFromCloud(prevKey); 
+                    if(prevData) { 
+                        if(await showConfirm(i18n[currentLang].import_struct)) data=zeroOutData(prevData); 
+                        else { loadingMsg.style.display = 'none'; return; }
+                    } else { 
+                        showToast(i18n[currentLang].no_data_err, 'warning'); 
+                        loadingMsg.style.display = 'none'; return;
+                    } 
+                } 
+                populateTable('tbl_rev',data.inc.rev,'noncash'); 
+                populateTable('tbl_cogs',data.inc.cogs,'noncash'); 
+                populateTable('tbl_opex',data.inc.opex,'noncash'); 
+                populateTable('tbl_dep',data.inc.dep,'noncash'); 
+                populateTable('tbl_tax',data.inc.tax,'noncash'); 
+                populateTable('tbl_ca',data.bal.ca,'none'); 
+                populateTable('tbl_nca',data.bal.nca,'asset'); 
+                populateTable('tbl_liab',data.bal.liab,'none'); 
+                populateTable('tbl_eq',data.bal.eq,'none'); 
+                populateTable('tbl_cf_op',data.cf.op,'none'); 
+                populateTable('tbl_cf_inv',data.cf.inv,'none'); 
+                populateTable('tbl_cf_fin',data.cf.fin,'none'); 
+                document.getElementById('cf_beg').value=data.cf.beg; 
+                calculateLocal(); 
+            } catch(e) { 
+                showToast(i18n[currentLang].error, 'error'); 
+                console.error(e);
+            } finally { 
+                loadingMsg.style.display = 'none'; 
+            } 
+        }
 
-        function calculateLocal() { 
+        // ============ الحسابات المحلية ============
+        // استخدام debounce لمنع التنفيذ المتكرر
+        const calculateLocal = debounce(function() { 
             const rev = sumTable('tbl_rev',true), cogs = sumTable('tbl_cogs',true), gp = rev.total-cogs.total, opex = sumTable('tbl_opex',true), ebitda = gp-opex.total, dep = sumTable('tbl_dep',true), ebit = ebitda-dep.total, tax = sumTable('tbl_tax',true), np = ebit-tax.total, totalNonCash = rev.nonCash+cogs.nonCash+opex.nonCash+dep.nonCash+tax.nonCash; 
             document.getElementById('val_gp').innerText=fmt(gp); document.getElementById('val_ebitda').innerText=fmt(ebitda); document.getElementById('val_ebit').innerText=fmt(ebit); document.getElementById('val_np').innerText=fmt(np); 
             const ca = sumTable('tbl_ca').total; let fixed=0, accDep=0, intan=0, accAmort=0, otherNca=0; 
             Array.from(document.getElementById('tbl_nca').querySelector('tbody').rows).forEach(r => { const val = parseFloat(r.cells[1].querySelector('input').value)||0; const type = r.cells[2].querySelector('select').value; if(type==='fixed') fixed+=val; else if(type==='acc_dep') accDep+=val; else if(type==='intan') intan+=val; else if(type==='acc_amort') accAmort+=val; else otherNca+=val; }); 
             const netFixed=fixed-accDep, netIntan=intan-accAmort, tnca=netFixed+netIntan+otherNca, ta=ca+tnca, tl = sumTable('tbl_liab').total, teq = sumTable('tbl_eq').total, tle=tl+teq, diff=ta-tle; 
-            document.getElementById('val_tca').innerText=fmt(ca); document.getElementById('val_netfixed').innerText=fmt(netFixed); document.getElementById('val_netintan').innerText=fmt(netIntan); document.getElementById('val_tnca').innerText=fmt(tnca); document.getElementById('val_ta').innerText=fmt(ta); document.getElementById('val_tl').innerText=fmt(tl); document.getElementById('val_teq').innerText=fmt(teq); document.getElementById('val_tle').innerText=fmt(tle); document.getElementById('val_diff').innerText=fmt(diff); document.getElementById('balanceCheck').style.borderColor = diff===0?"var(--success)":"var(--danger)"; 
+            document.getElementById('val_tca').innerText=fmt(ca); document.getElementById('val_netfixed').innerText=fmt(netFixed); document.getElementById('val_netintan').innerText=fmt(netIntan); document.getElementById('val_tnca').innerText=fmt(tnca); document.getElementById('val_ta').innerText=fmt(ta); document.getElementById('val_tl').innerText=fmt(tl); document.getElementById('val_teq').innerText=fmt(teq); document.getElementById('val_tle').innerText=fmt(tle); document.getElementById('val_diff').innerText=fmt(diff); 
+            const checkEl = document.getElementById('balanceCheck');
+            checkEl.style.borderColor = diff===0?"var(--success)":"var(--danger)";
+            checkEl.style.borderWidth = diff===0?"1px":"2px";
             document.getElementById('cf_np').innerText=fmt(np); document.getElementById('cf_noncash').innerText=fmt(totalNonCash); 
             const cfOp = np+totalNonCash+sumTable('tbl_cf_op').total, cfInv = sumTable('tbl_cf_inv').total, cfFin = sumTable('tbl_cf_fin').total, cfNet = cfOp+cfInv+cfFin, cfBeg = parseFloat(document.getElementById('cf_beg').value)||0, cfEnd = cfBeg+cfNet; 
             document.getElementById('val_cf_op').innerText=fmt(cfOp); document.getElementById('val_cf_inv').innerText=fmt(cfInv); document.getElementById('val_cf_fin').innerText=fmt(cfFin); document.getElementById('val_cf_net').innerText=fmt(cfNet); document.getElementById('val_cf_end').innerText=fmt(cfEnd); 
             document.getElementById('d_rev').innerText=fmt(rev.total); document.getElementById('d_prof').innerText=fmt(np); document.getElementById('d_cash').innerText=fmt(cfEnd); 
             renderVerticalAnalysis(rev.total, gp, opex.total, np); renderRatios(rev.total, np, ca, tl, tle, ta, teq); analyzeItems(); updateDashboardCharts(rev.total, np, cfEnd, cfOp, cfInv, cfFin); 
-        }
+        }, 100);
 
-        async function updateDashboardCharts(curRev, curProf, curCash, curCfOp, curCfInv, curCfFin) { let y = parseInt(document.getElementById('selYear').value); let t = document.getElementById('selPeriodType').value; let n = document.getElementById('selPeriodNum').value; let d1 = await fetchDataFromCloud(getKey(y-1, t, n)); let d2 = await fetchDataFromCloud(getKey(y-2, t, n)); let d3 = await fetchDataFromCloud(getKey(y-3, t, n)); let s1 = d1 ? getFinancialSummary(d1) : null; let s2 = d2 ? getFinancialSummary(d2) : null; let s3 = d3 ? getFinancialSummary(d3) : null; function calcChg(elemId, curr, prev, yearLabel) { let elem = document.getElementById(elemId); if(prev && prev > 0) { let pct = ((curr - prev) / prev * 100).toFixed(1); let isUp = pct >= 0; elem.className = `change ${isUp ? 'up' : 'down'}`; elem.innerText = `${isUp ? '▲' : '▼'} ${Math.abs(pct)}% ${i18n[currentLang].about_var} ${yearLabel}`; } else { elem.innerText = i18n[currentLang].new_text; } } calcChg('d_rev_chg', curRev, s1?.rev, y-1); calcChg('d_prof_chg', curProf, s1?.np, y-1); calcChg('d_cash_chg', curCash, s1?.cfEnd, y-1); if(window.chart1Obj) window.chart1Obj.destroy(); window.chart1Obj = new Chart(document.getElementById('chart1'), { type: 'bar', data: { labels: [y-3, y-2, y-1, y], datasets: [ { label: i18n[currentLang].revenues, data: [s3?.rev||0, s2?.rev||0, s1?.rev||0, curRev], backgroundColor: '#3b82f6', borderRadius: 4 }, { label: i18n[currentLang].net_income, data: [s3?.np||0, s2?.np||0, s1?.np||0, curProf], backgroundColor: '#10b981', borderRadius: 4 } ] }, options: { plugins: { legend: { labels: { color: '#94a3b8' } } }, scales: { y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } } } }); if(window.chart2Obj) window.chart2Obj.destroy(); window.chart2Obj = new Chart(document.getElementById('chart2'), { type: 'bar', data: { labels: [i18n[currentLang].cf_op_total, i18n[currentLang].cf_inv_total, i18n[currentLang].cf_fin_total], datasets:[{data:[curCfOp, curCfInv, curCfFin], backgroundColor:['#3b82f6','#8b5cf6','#ec4899'], borderRadius: 4}] }, options:{plugins:{legend:{display:false}}, scales: { y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } }}}); }
+        // ============ لوحة القيادة ============
+        async function updateDashboardCharts(curRev, curProf, curCash, curCfOp, curCfInv, curCfFin) { 
+            let y = parseInt(document.getElementById('selYear').value); 
+            let t = document.getElementById('selPeriodType').value; 
+            let n = document.getElementById('selPeriodNum').value; 
+            
+            const [d1, d2, d3] = await Promise.all([
+                fetchDataFromCloud(getKey(y-1, t, n)),
+                fetchDataFromCloud(getKey(y-2, t, n)),
+                fetchDataFromCloud(getKey(y-3, t, n))
+            ]);
+            
+            let s1 = d1 ? getFinancialSummary(d1) : null; 
+            let s2 = d2 ? getFinancialSummary(d2) : null; 
+            let s3 = d3 ? getFinancialSummary(d3) : null; 
+            
+            function calcChg(elemId, curr, prev, yearLabel) { 
+                let elem = document.getElementById(elemId); 
+                if(prev && prev > 0) { 
+                    let pct = ((curr - prev) / prev * 100).toFixed(1); 
+                    let isUp = pct >= 0; 
+                    elem.className = `change ${isUp ? 'up' : 'down'}`; 
+                    elem.innerText = `${isUp ? '▲' : '▼'} ${Math.abs(pct)}% ${i18n[currentLang].about_var} ${yearLabel}`; 
+                } else { 
+                    elem.className = 'change';
+                    elem.innerText = i18n[currentLang].new_text; 
+                } 
+            } 
+            calcChg('d_rev_chg', curRev, s1?.rev, y-1); 
+            calcChg('d_prof_chg', curProf, s1?.np, y-1); 
+            calcChg('d_cash_chg', curCash, s1?.cfEnd, y-1); 
+            
+            if(window.chart1Obj) window.chart1Obj.destroy(); 
+            window.chart1Obj = new Chart(document.getElementById('chart1'), { 
+                type: 'bar', 
+                data: { 
+                    labels: [y-3, y-2, y-1, y], 
+                    datasets: [ 
+                        { label: i18n[currentLang].revenues, data: [s3?.rev||0, s2?.rev||0, s1?.rev||0, curRev], backgroundColor: '#3b82f6', borderRadius: 4 }, 
+                        { label: i18n[currentLang].net_income, data: [s3?.np||0, s2?.np||0, s1?.np||0, curProf], backgroundColor: '#10b981', borderRadius: 4 } 
+                    ] 
+                }, 
+                options: { 
+                    responsive: true,
+                    plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'Cairo' } } } }, 
+                    scales: { 
+                        y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, 
+                        x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } 
+                    } 
+                } 
+            }); 
+            
+            if(window.chart2Obj) window.chart2Obj.destroy(); 
+            window.chart2Obj = new Chart(document.getElementById('chart2'), { 
+                type: 'bar', 
+                data: { 
+                    labels: [i18n[currentLang].cf_op_total, i18n[currentLang].cf_inv_total, i18n[currentLang].cf_fin_total], 
+                    datasets:[{
+                        data:[curCfOp, curCfInv, curCfFin], 
+                        backgroundColor:['#3b82f6','#8b5cf6','#ec4899'], 
+                        borderRadius: 4
+                    }] 
+                }, 
+                options:{
+                    responsive: true,
+                    plugins:{legend:{display:false}}, 
+                    scales: { 
+                        y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, 
+                        x: { ticks: { color: '#94a3b8', font: { family: 'Cairo' } }, grid: { color: '#334155' } } 
+                    }
+                }
+            }); 
+        }
 
         function analyzeItems() { 
-            let revItems = []; Array.from(document.getElementById('tbl_rev').querySelector('tbody').rows).forEach(r => { let v = parseFloat(r.cells[1].querySelector('input').value)||0; if(v > 0) revItems.push({name: r.cells[0].querySelector('input').value, amount: v}); }); revItems.sort((a,b) => b.amount - a.amount); document.getElementById('topRevList').innerHTML = revItems.slice(0,3).map(i => `<li><span>${i.name}</span> <span style="font-weight:bold;color:var(--primary)">${fmt(i.amount)} ${i18n[currentLang].currency}</span></li>`).join('') || `<li>${i18n[currentLang].no_data}</li>`; 
-            let costTables = ['tbl_cogs', 'tbl_opex', 'tbl_dep', 'tbl_tax']; let costItems = []; costTables.forEach(tid => { Array.from(document.getElementById(tid).querySelector('tbody').rows).forEach(r => { let v = Math.abs(parseFloat(r.cells[1].querySelector('input').value)||0); if(v > 0) costItems.push({name: r.cells[0].querySelector('input').value, amount: v}); }); }); costItems.sort((a,b) => b.amount - a.amount); document.getElementById('topCostList').innerHTML = costItems.slice(0,3).map(i => `<li><span>${i.name}</span> <span style="font-weight:bold;color:var(--danger)">${fmt(i.amount)} ${i18n[currentLang].currency}</span></li>`).join('') || `<li>${i18n[currentLang].no_data}</li>`; 
+            let revItems = []; 
+            Array.from(document.getElementById('tbl_rev').querySelector('tbody').rows).forEach(r => { 
+                let v = parseFloat(r.cells[1].querySelector('input').value)||0; 
+                if(v > 0) revItems.push({name: r.cells[0].querySelector('input').value, amount: v}); 
+            }); 
+            revItems.sort((a,b) => b.amount - a.amount); 
+            document.getElementById('topRevList').innerHTML = revItems.slice(0,5).map(i => `<li><span>${escapeHtml(i.name)}</span> <span style="font-weight:bold;color:var(--primary)">${fmt(i.amount)} ${i18n[currentLang].currency}</span></li>`).join('') || `<li>${i18n[currentLang].no_data}</li>`; 
+            
+            let costTables = ['tbl_cogs', 'tbl_opex', 'tbl_dep', 'tbl_tax']; 
+            let costItems = []; 
+            costTables.forEach(tid => { 
+                Array.from(document.getElementById(tid).querySelector('tbody').rows).forEach(r => { 
+                    let v = Math.abs(parseFloat(r.cells[1].querySelector('input').value)||0); 
+                    if(v > 0) costItems.push({name: r.cells[0].querySelector('input').value, amount: v}); 
+                }); 
+            }); 
+            costItems.sort((a,b) => b.amount - a.amount); 
+            document.getElementById('topCostList').innerHTML = costItems.slice(0,5).map(i => `<li><span>${escapeHtml(i.name)}</span> <span style="font-weight:bold;color:var(--danger)">${fmt(i.amount)} ${i18n[currentLang].currency}</span></li>`).join('') || `<li>${i18n[currentLang].no_data}</li>`; 
         }
 
-        function renderVerticalAnalysis(rev, gp, opex, np) { const L = i18n[currentLang]; const vData = [{n:L.revenues,v:rev,p:100},{n:L.gp,v:gp,p:rev?gp/rev*100:0},{n:L.opex,v:opex,p:rev?opex/rev*100:0},{n:L.net_income,v:np,p:rev?np/rev*100:0}]; document.getElementById('anvBody').innerHTML = vData.map(d=>`<tr><td>${d.n}</td><td>${fmt(d.v)}</td><td>${d.p.toFixed(1)}%</td></tr>`).join(''); }
-        function renderRatios(rev, np, ca, tl, tle, ta, teq) { const L = i18n[currentLang]; const currentRatio = tl?(ca/tl).toFixed(2):0; const debtRatio = ta?(tle/ta*100).toFixed(1):0; const roe = teq?(np/teq*100).toFixed(1):0; const netMargin = rev?(np/rev*100).toFixed(1):0; document.getElementById('ratiosBody').innerHTML = `<div class="mgmt-card"><h4>${L.liquidity}: ${currentRatio}</h4><p>${currentRatio>=1.5?'🟢 '+L.excellent:currentRatio>=1?'🟡 '+L.acceptable:'🔴 '+L.risk}</p></div><div class="mgmt-card"><h4>${L.profit_margin}: ${netMargin}%</h4><p>${L.liq_desc.replace('{margin}', netMargin)}</p></div><div class="mgmt-card"><h4>${L.roi}: ${roe}%</h4><p>${L.roi_desc.replace('{roi}', roe)}</p></div><div class="mgmt-card"><h4>${L.debts}: ${debtRatio}%</h4><p>${debtRatio>70?'🔴 '+L.status_danger:'🟢 '+L.status_safe}</p></div>`; }
-
-        async function runHorizontalAnalysis() { loadingMsg.style.display = 'block'; try { const L = i18n[currentLang]; const baseYear = document.getElementById('baseYear').value; const c1 = document.getElementById('c1Year').value; const c2 = document.getElementById('c2Year').value; const c3 = document.getElementById('c3Year').value; const pType = document.getElementById('selPeriodType').value; const pNum = document.getElementById('selPeriodNum').value; const base = getFinancialSummary(await fetchDataFromCloud(getKey(baseYear, pType, pNum))); const d1 = getFinancialSummary(await fetchDataFromCloud(getKey(c1, pType, pNum))); const d2 = getFinancialSummary(await fetchDataFromCloud(getKey(c2, pType, pNum))); const d3 = getFinancialSummary(await fetchDataFromCloud(getKey(c3, pType, pNum))); if(!base) { showToast(L.no_data_err, 'warning'); return; } document.getElementById('hTableHead').innerHTML = `<tr><th rowspan="2">${L.item}</th><th rowspan="2">${baseYear}</th><th colspan="2">${d1?c1:L.empty}</th><th colspan="2">${d2?c2:L.empty}</th><th colspan="2">${d3?c3:L.empty}</th></tr><tr><th>${L.amount}</th><th>%</th><th>${L.amount}</th><th>%</th><th>${L.amount}</th><th>%</th></tr>`; const rowsDef = [{name: L.revenues, key: 'rev', isGood: true},{name: L.cogs, key: 'cogs', isGood: false},{name: L.gp, key: 'gp', isGood: true},{name: L.opex, key: 'opex', isGood: false},{name: L.net_income, key: 'np', isGood: true},{name: L.total_assets, key: 'ta', isGood: true},{name: L.liab, key: 'tl', isGood: false},{name: L.eq, key: 'teq', isGood: true}]; let html = ''; rowsDef.forEach(row => { html += `<tr><td><strong>${row.name}</strong></td><td>${fmt(base[row.key])}</td>`; [d1, d2, d3].forEach(comp => { if(comp) { const diff = base[row.key] - comp[row.key]; const perc = comp[row.key] !== 0 ? (diff / Math.abs(comp[row.key])) * 100 : 0; const isGood = row.isGood ? diff >= 0 : diff <= 0; const colorClass = isGood ? 'change-pos' : 'change-neg'; const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '-'; html += `<td>${fmt(comp[row.key])}</td><td class="${colorClass}">${arrow} ${perc.toFixed(1)}%</td>`; } else { html += `<td>-</td><td>-</td>`; } }); html += `</tr>`; }); document.getElementById('anhBody').innerHTML = html; } catch(e) { showToast(i18n[currentLang].error, 'error'); } finally { loadingMsg.style.display = 'none'; } }
-
-        async function generateMgmtReport() { loadingMsg.style.display = 'block'; try { const L = i18n[currentLang]; const y = document.getElementById('repYear').value; const t = document.getElementById('repType').value; const n = document.getElementById('repNum').value; const data = await fetchDataFromCloud(getKey(y,t,n)); if(!data) { document.getElementById('mgmtBody').innerHTML = `<div style="text-align:center; padding:30px; color:var(--danger);">${L.no_data_err}</div>`; return; } const s = getFinancialSummary(data); const netMargin = s.rev ? (s.np/s.rev*100).toFixed(1) : 0; const cashCoverage = s.opex > 0 ? (s.cfEnd / s.opex).toFixed(1) : 0; const debtRatio = s.ta ? (s.tl/s.ta*100).toFixed(1) : 0; const debtStatus = s.tl<s.teq ? L.status_safe : L.status_danger; const cfDirection = s.cfNet > 0 ? L.increased : L.decreased; document.getElementById('mgmtBody').innerHTML = `<div class="mgmt-card"><h3><span class="traffic-light ${s.np>0?'tl-green':'tl-red'}"></span> ${L.rep_profit_q}</h3><p>${L.rep_profit_a.replace('{rev}', fmt(s.rev)).replace('{np}', fmt(s.np)).replace('{margin}', netMargin)}</p></div><div class="mgmt-card"><h3><span class="traffic-light ${s.cfEnd>s.opex?'tl-green':'tl-yellow'}"></span> ${L.rep_cash_q}</h3><p>${L.rep_cash_a.replace('{cash}', fmt(s.cfEnd)).replace('{coverage}', cashCoverage)}</p></div><div class="mgmt-card"><h3><span class="traffic-light ${s.tl<s.teq?'tl-green':'tl-red'}"></span> ${L.rep_debt_q}</h3><p>${L.rep_debt_a.replace('{ratio}', debtRatio).replace('{status}', debtStatus)}</p></div><div class="mgmt-card"><h3><span class="traffic-light ${s.cfOp>0?'tl-green':'tl-red'}"></span> ${L.rep_where_q}</h3><p>${L.rep_where_a.replace('{direction}', cfDirection).replace('{net}', fmt(Math.abs(s.cfNet)))}</p></div>`; } catch(e) { showToast(i18n[currentLang].error, 'error'); } finally { loadingMsg.style.display = 'none'; } }
+        function renderVerticalAnalysis(rev, gp, opex, np) { 
+            const L = i18n[currentLang]; 
+            const vData = [
+                {n:L.revenues,v:rev,p:100},
+                {n:L.gp,v:gp,p:rev?gp/rev*100:0},
+                {n:L.opex,v:opex,p:rev?opex/rev*100:0},
+                {n:L.net_income,v:np,p:rev?np/rev*100:0}
+            ]; 
+            document.getElementById('anvBody').innerHTML = vData.map(d=>`<tr><td>${d.n}</td><td>${fmt(d.v)}</td><td>${d.p.toFixed(1)}%</td></tr>`).join(''); 
+        }
         
-        async function exportToExcel() { loadingMsg.style.display = 'block'; try { const y = document.getElementById('repYear').value; const t = document.getElementById('repType').value; const n = document.getElementById('repNum').value; const data = await fetchDataFromCloud(getKey(y,t,n)); if(!data) { showToast(i18n[currentLang].no_data_err, 'warning'); return; } const s = getFinancialSummary(data); const repText = [["Zad Al-Joud Report"], [], ["Question", "Answer"], [i18n[currentLang].rep_profit_q, `Profit: ${fmt(s.np)}`], [i18n[currentLang].rep_cash_q, `Cash: ${fmt(s.cfEnd)}`], [i18n[currentLang].rep_debt_q, `Ratio: ${s.ta?(s.tl/s.ta*100).toFixed(1):0}%`], [i18n[currentLang].rep_where_q, `CF: ${fmt(s.cfNet)}`]]; const ws = XLSX.utils.aoa_to_sheet(repText); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Report"); XLSX.writeFile(wb, `Report_${y}.xlsx`); } catch(e) { showToast(i18n[currentLang].error, 'error'); } finally { loadingMsg.style.display = 'none'; } }
+        function renderRatios(rev, np, ca, tl, tle, ta, teq) { 
+            const L = i18n[currentLang]; 
+            const currentRatio = tl?(ca/tl).toFixed(2):0; 
+            const debtRatio = ta?(tle/ta*100).toFixed(1):0; 
+            const roe = teq?(np/teq*100).toFixed(1):0; 
+            const netMargin = rev?(np/rev*100).toFixed(1):0; 
+            document.getElementById('ratiosBody').innerHTML = `
+                <div class="mgmt-card"><h4>${L.liquidity}: ${currentRatio}</h4><p>${currentRatio>=1.5?'🟢 '+L.excellent:currentRatio>=1?'🟡 '+L.acceptable:'🔴 '+L.risk}</p></div>
+                <div class="mgmt-card"><h4>${L.profit_margin}: ${netMargin}%</h4><p>${L.liq_desc.replace('{margin}', netMargin)}</p></div>
+                <div class="mgmt-card"><h4>${L.roi}: ${roe}%</h4><p>${L.roi_desc.replace('{roi}', roe)}</p></div>
+                <div class="mgmt-card"><h4>${L.debts}: ${debtRatio}%</h4><p>${debtRatio>70?'🔴 '+L.status_danger:'🟢 '+L.status_safe}</p></div>`; 
+        }
 
-        function downloadTemplate() { const L = i18n[currentLang]; const headers = [L.nav_income, L.cogs, L.item, L.amount, L.noncash_q, L.type]; const examples = [ [L.nav_income, L.revenues, "Product A", 50000, "FALSE", ""], [L.nav_income, L.cogs, "Raw Materials", 20000, "FALSE", ""], [L.nav_income, L.opex, "Salaries", 10000, "FALSE", ""], [L.nav_income, L.dep, "Equip Dep", 2000, "TRUE", ""], [L.nav_income, L.tax, "Zakat", 1000, "FALSE", ""], [L.nav_balance, L.ca, "Bank", 30000, "", ""], [L.nav_balance, L.nca, "Building", 100000, "", "fixed"], [L.nav_balance, L.nca, "Acc Dep", 5000, "", "acc_dep"], [L.nav_balance, L.liab, "Suppliers", 15000, "", ""], [L.nav_balance, L.eq, "Capital", 200000, "", ""], [L.nav_cashflow, L.cf_op_total, "Collections", 45000, "", ""], [L.nav_cashflow, L.cf_inv_total, "Purchase", 5000, "", ""], [L.nav_cashflow, L.cf_fin_total, "Loans", 3000, "", ""], [L.nav_cashflow, L.beg_period, "Opening Balance", 10000, "", ""] ]; const ws = XLSX.utils.aoa_to_sheet([headers, ...examples]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Template"); XLSX.writeFile(wb, "Zad_AlJoud_Template.xlsx"); }
+        // ============ التحليل الأفقي ============
+        async function runHorizontalAnalysis() { 
+            loadingMsg.style.display = 'block'; 
+            try { 
+                const L = i18n[currentLang]; 
+                const baseYear = document.getElementById('baseYear').value; 
+                const c1 = document.getElementById('c1Year').value; 
+                const c2 = document.getElementById('c2Year').value; 
+                const c3 = document.getElementById('c3Year').value; 
+                const pType = document.getElementById('selPeriodType').value; 
+                const pNum = document.getElementById('selPeriodNum').value; 
+                
+                // جلب البيانات بالتوازي
+                const [baseData, d1Data, d2Data, d3Data] = await Promise.all([
+                    fetchDataFromCloud(getKey(baseYear, pType, pNum)),
+                    fetchDataFromCloud(getKey(c1, pType, pNum)),
+                    fetchDataFromCloud(getKey(c2, pType, pNum)),
+                    fetchDataFromCloud(getKey(c3, pType, pNum))
+                ]);
+                
+                const base = getFinancialSummary(baseData); 
+                const d1 = getFinancialSummary(d1Data); 
+                const d2 = getFinancialSummary(d2Data); 
+                const d3 = getFinancialSummary(d3Data); 
+                
+                if(!base) { showToast(L.no_data_err, 'warning'); return; } 
+                
+                document.getElementById('hTableHead').innerHTML = `<tr><th rowspan="2">${L.item}</th><th rowspan="2">${baseYear}</th><th colspan="2">${d1?c1:L.empty}</th><th colspan="2">${d2?c2:L.empty}</th><th colspan="2">${d3?c3:L.empty}</th></tr><tr><th>${L.amount}</th><th>%</th><th>${L.amount}</th><th>%</th><th>${L.amount}</th><th>%</th></tr>`; 
+                
+                const rowsDef = [
+                    {name: L.revenues, key: 'rev', isGood: true},
+                    {name: L.cogs, key: 'cogs', isGood: false},
+                    {name: L.gp, key: 'gp', isGood: true},
+                    {name: L.opex, key: 'opex', isGood: false},
+                    {name: L.net_income, key: 'np', isGood: true},
+                    {name: L.total_assets, key: 'ta', isGood: true},
+                    {name: L.liab, key: 'tl', isGood: false},
+                    {name: L.eq, key: 'teq', isGood: true}
+                ]; 
+                
+                let html = ''; 
+                rowsDef.forEach(row => { 
+                    html += `<tr><td><strong>${row.name}</strong></td><td>${fmt(base[row.key])}</td>`; 
+                    [d1, d2, d3].forEach(comp => { 
+                        if(comp) { 
+                            const diff = base[row.key] - comp[row.key]; 
+                            const perc = comp[row.key] !== 0 ? (diff / Math.abs(comp[row.key])) * 100 : 0; 
+                            const isGood = row.isGood ? diff >= 0 : diff <= 0; 
+                            const colorClass = isGood ? 'change-pos' : 'change-neg'; 
+                            const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '-'; 
+                            html += `<td>${fmt(comp[row.key])}</td><td class="${colorClass}">${arrow} ${perc.toFixed(1)}%</td>`; 
+                        } else { 
+                            html += `<td>-</td><td>-</td>`; 
+                        } 
+                    }); 
+                    html += `</tr>`; 
+                }); 
+                document.getElementById('anhBody').innerHTML = html; 
+            } catch(e) { 
+                showToast(i18n[currentLang].error, 'error'); 
+                console.error(e);
+            } finally { 
+                loadingMsg.style.display = 'none'; 
+            } 
+        }
 
-        async function uploadExcel(event) { const file = event.target.files[0]; if (!file) return; loadingMsg.style.display = 'block'; const reader = new FileReader(); reader.onload = async (e) => { try { const data = new Uint8Array(e.target.result); const workbook = XLSX.read(data, { type: 'array' }); const sheet = workbook.Sheets[workbook.SheetNames[0]]; const rows = XLSX.utils.sheet_to_json(sheet); let inc = { rev: [], cogs: [], opex: [], dep: [], tax: [] }; let bal = { ca: [], nca: [], liab: [], eq: [] }; let cf = { op: [], inv: [], fin: [], beg: 0 }; const L = i18n[currentLang]; rows.forEach(row => { const sheetName = row[L.nav_income] || row[L.nav_balance] || row[L.nav_cashflow]; const category = row[L.cogs] || row[L.revenues] || row[L.opex] || row[L.dep] || row[L.tax] || row[L.ca] || row[L.nca] || row[L.liab] || row[L.eq] || row[L.cf_op_total] || row[L.cf_inv_total] || row[L.cf_fin_total] || row[L.beg_period]; const name = row[L.item]; const amount = row[L.amount] || 0; const isNonCash = row[L.noncash_q] === true || row[L.noncash_q] === 'TRUE'; const assetType = row[L.type] || 'other'; if (!name && !category) return; const itemObj = { name: name || category, amount, isNonCash, assetType }; if(sheetName === L.nav_income || category === L.revenues || category === L.cogs || category === L.opex || category === L.dep || category === L.tax) { if(category === L.revenues) inc.rev.push(itemObj); else if(category === L.cogs) inc.cogs.push(itemObj); else if(category === L.opex) inc.opex.push(itemObj); else if(category === L.dep) inc.dep.push(itemObj); else if(category === L.tax) inc.tax.push(itemObj); } else if(sheetName === L.nav_balance || category === L.ca || category === L.nca || category === L.liab || category === L.eq) { if(category === L.ca) bal.ca.push(itemObj); else if(category === L.nca) bal.nca.push(itemObj); else if(category === L.liab) bal.liab.push(itemObj); else if(category === L.eq) bal.eq.push(itemObj); } else if(sheetName === L.nav_cashflow || category === L.cf_op_total || category === L.cf_inv_total || category === L.cf_fin_total || category === L.beg_period) { if(category === L.beg_period) cf.beg = amount; else if(category === L.cf_op_total) cf.op.push({name: itemObj.name, amount}); else if(category === L.cf_inv_total) cf.inv.push({name: itemObj.name, amount}); else if(category === L.cf_fin_total) cf.fin.push({name: itemObj.name, amount}); } }); const finalData = { inc, bal, cf }; const key = getCurrentKey(); await setDoc(doc(db, "financial_periods", key), finalData); await loadPeriodData(); showToast(i18n[currentLang].saved, 'success'); } catch (err) { console.error(err); showToast(i18n[currentLang].error, 'error'); } finally { loadingMsg.style.display = 'none'; event.target.value = ''; } }; reader.readAsArrayBuffer(file); }
+        // ============ تقرير الإدارة ============
+        async function generateMgmtReport() { 
+            loadingMsg.style.display = 'block'; 
+            try { 
+                const L = i18n[currentLang]; 
+                const y = document.getElementById('repYear').value; 
+                const t = document.getElementById('repType').value; 
+                const n = document.getElementById('repNum').value; 
+                const data = await fetchDataFromCloud(getKey(y,t,n)); 
+                if(!data) { 
+                    document.getElementById('mgmtBody').innerHTML = `<div style="text-align:center; padding:30px; color:var(--danger);">${L.no_data_err}</div>`; 
+                    loadingMsg.style.display = 'none'; return;
+                } 
+                const s = getFinancialSummary(data); 
+                const netMargin = s.rev ? (s.np/s.rev*100).toFixed(1) : 0; 
+                const cashCoverage = s.opex > 0 ? (s.cfEnd / s.opex).toFixed(1) : 0; 
+                const debtRatio = s.ta ? (s.tl/s.ta*100).toFixed(1) : 0; 
+                const debtStatus = s.tl<s.teq ? L.status_safe : L.status_danger; 
+                const cfDirection = s.cfNet > 0 ? L.increased : L.decreased; 
+                document.getElementById('mgmtBody').innerHTML = `
+                    <div class="mgmt-card"><h3><span class="traffic-light ${s.np>0?'tl-green':'tl-red'}"></span> ${L.rep_profit_q}</h3><p>${L.rep_profit_a.replace('{rev}', fmt(s.rev)).replace('{np}', fmt(s.np)).replace('{margin}', netMargin)}</p></div>
+                    <div class="mgmt-card"><h3><span class="traffic-light ${s.cfEnd>s.opex?'tl-green':'tl-yellow'}"></span> ${L.rep_cash_q}</h3><p>${L.rep_cash_a.replace('{cash}', fmt(s.cfEnd)).replace('{coverage}', cashCoverage)}</p></div>
+                    <div class="mgmt-card"><h3><span class="traffic-light ${s.tl<s.teq?'tl-green':'tl-red'}"></span> ${L.rep_debt_q}</h3><p>${L.rep_debt_a.replace('{ratio}', debtRatio).replace('{status}', debtStatus)}</p></div>
+                    <div class="mgmt-card"><h3><span class="traffic-light ${s.cfOp>0?'tl-green':'tl-red'}"></span> ${L.rep_where_q}</h3><p>${L.rep_where_a.replace('{direction}', cfDirection).replace('{net}', fmt(Math.abs(s.cfNet)))}</p></div>`; 
+            } catch(e) { 
+                showToast(i18n[currentLang].error, 'error'); 
+                console.error(e);
+            } finally { 
+                loadingMsg.style.display = 'none'; 
+            } 
+        }
+        
+        async function exportToExcel() { 
+            loadingMsg.style.display = 'block'; 
+            try { 
+                const y = document.getElementById('repYear').value; 
+                const t = document.getElementById('repType').value; 
+                const n = document.getElementById('repNum').value; 
+                const data = await fetchDataFromCloud(getKey(y,t,n)); 
+                if(!data) { showToast(i18n[currentLang].no_data_err, 'warning'); loadingMsg.style.display = 'none'; return; } 
+                const s = getFinancialSummary(data); 
+                const repText = [
+                    ["Zad Al-Joud Report"], [], 
+                    ["Question", "Answer"], 
+                    [i18n[currentLang].rep_profit_q, `Profit: ${fmt(s.np)}`], 
+                    [i18n[currentLang].rep_cash_q, `Cash: ${fmt(s.cfEnd)}`], 
+                    [i18n[currentLang].rep_debt_q, `Ratio: ${s.ta?(s.tl/s.ta*100).toFixed(1):0}%`], 
+                    [i18n[currentLang].rep_where_q, `CF: ${fmt(s.cfNet)}`]
+                ]; 
+                const ws = XLSX.utils.aoa_to_sheet(repText); 
+                const wb = XLSX.utils.book_new(); 
+                XLSX.utils.book_append_sheet(wb, ws, "Report"); 
+                XLSX.writeFile(wb, `Report_${y}.xlsx`); 
+            } catch(e) { 
+                showToast(i18n[currentLang].error, 'error'); 
+            } finally { 
+                loadingMsg.style.display = 'none'; 
+            } 
+        }
 
-        // NEW: PREMIUM FINANCIAL STATEMENTS LOGIC
+        // ============ قالب Excel ============
+        function downloadTemplate() { 
+            const L = i18n[currentLang]; 
+            const headers = [L.nav_income, L.cogs, L.item, L.amount, L.noncash_q, L.type]; 
+            const examples = [ 
+                [L.nav_income, L.revenues, "Product A", 50000, "FALSE", ""], 
+                [L.nav_income, L.cogs, "Raw Materials", 20000, "FALSE", ""], 
+                [L.nav_income, L.opex, "Salaries", 10000, "FALSE", ""], 
+                [L.nav_income, L.dep, "Equip Dep", 2000, "TRUE", ""], 
+                [L.nav_income, L.tax, "Zakat", 1000, "FALSE", ""], 
+                [L.nav_balance, L.ca, "Bank", 30000, "", ""], 
+                [L.nav_balance, L.nca, "Building", 100000, "", "fixed"], 
+                [L.nav_balance, L.nca, "Acc Dep", 5000, "", "acc_dep"], 
+                [L.nav_balance, L.liab, "Suppliers", 15000, "", ""], 
+                [L.nav_balance, L.eq, "Capital", 200000, "", ""], 
+                [L.nav_cashflow, L.cf_op_total, "Collections", 45000, "", ""], 
+                [L.nav_cashflow, L.cf_inv_total, "Purchase", 5000, "", ""], 
+                [L.nav_cashflow, L.cf_fin_total, "Loans", 3000, "", ""], 
+                [L.nav_cashflow, L.beg_period, "Opening Balance", 10000, "", ""] 
+            ]; 
+            const ws = XLSX.utils.aoa_to_sheet([headers, ...examples]); 
+            const wb = XLSX.utils.book_new(); 
+            XLSX.utils.book_append_sheet(wb, ws, "Template"); 
+            XLSX.writeFile(wb, "Zad_AlJoud_Template.xlsx"); 
+        }
+
+        // ============ رفع Excel ============
+        async function uploadExcel(event) { 
+            const file = event.target.files[0]; 
+            if (!file) return; 
+            loadingMsg.style.display = 'block'; 
+            const reader = new FileReader(); 
+            reader.onload = async (e) => { 
+                try { 
+                    const data = new Uint8Array(e.target.result); 
+                    const workbook = XLSX.read(data, { type: 'array' }); 
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]]; 
+                    const rows = XLSX.utils.sheet_to_json(sheet); 
+                    let inc = { rev: [], cogs: [], opex: [], dep: [], tax: [] }; 
+                    let bal = { ca: [], nca: [], liab: [], eq: [] }; 
+                    let cf = { op: [], inv: [], fin: [], beg: 0 }; 
+                    const L = i18n[currentLang]; 
+                    rows.forEach(row => { 
+                        const sheetName = row[L.nav_income] || row[L.nav_balance] || row[L.nav_cashflow]; 
+                        const category = row[L.cogs] || row[L.revenues] || row[L.opex] || row[L.dep] || row[L.tax] || row[L.ca] || row[L.nca] || row[L.liab] || row[L.eq] || row[L.cf_op_total] || row[L.cf_inv_total] || row[L.cf_fin_total] || row[L.beg_period]; 
+                        const name = row[L.item]; 
+                        const amount = row[L.amount] || 0; 
+                        const isNonCash = row[L.noncash_q] === true || row[L.noncash_q] === 'TRUE'; 
+                        const assetType = row[L.type] || 'other'; 
+                        if (!name && !category) return; 
+                        const itemObj = { name: name || category, amount, isNonCash, assetType }; 
+                        if(sheetName === L.nav_income || category === L.revenues || category === L.cogs || category === L.opex || category === L.dep || category === L.tax) { 
+                            if(category === L.revenues) inc.rev.push(itemObj); 
+                            else if(category === L.cogs) inc.cogs.push(itemObj); 
+                            else if(category === L.opex) inc.opex.push(itemObj); 
+                            else if(category === L.dep) inc.dep.push(itemObj); 
+                            else if(category === L.tax) inc.tax.push(itemObj); 
+                        } else if(sheetName === L.nav_balance || category === L.ca || category === L.nca || category === L.liab || category === L.eq) { 
+                            if(category === L.ca) bal.ca.push(itemObj); 
+                            else if(category === L.nca) bal.nca.push(itemObj); 
+                            else if(category === L.liab) bal.liab.push(itemObj); 
+                            else if(category === L.eq) bal.eq.push(itemObj); 
+                        } else if(sheetName === L.nav_cashflow || category === L.cf_op_total || category === L.cf_inv_total || category === L.cf_fin_total || category === L.beg_period) { 
+                            if(category === L.beg_period) cf.beg = amount; 
+                            else if(category === L.cf_op_total) cf.op.push({name: itemObj.name, amount}); 
+                            else if(category === L.cf_inv_total) cf.inv.push({name: itemObj.name, amount}); 
+                            else if(category === L.cf_fin_total) cf.fin.push({name: itemObj.name, amount}); 
+                        } 
+                    }); 
+                    const finalData = { inc, bal, cf }; 
+                    const key = getCurrentKey(); 
+                    await setDoc(doc(db, "financial_periods", key), finalData); 
+                    await loadPeriodData(); 
+                    showToast(i18n[currentLang].saved, 'success'); 
+                } catch (err) { 
+                    console.error(err); 
+                    showToast(i18n[currentLang].error, 'error'); 
+                } finally { 
+                    loadingMsg.style.display = 'none'; 
+                    event.target.value = ''; 
+                } 
+            }; 
+            reader.readAsArrayBuffer(file); 
+        }
+
+        // ============ القوائم المالية المهنية ============
         async function generateFS() {
             loadingMsg.style.display = 'block';
             try {
                 const y = document.getElementById('fsYear').value;
                 const t = document.getElementById('fsType').value;
                 const n = document.getElementById('fsNum').value;
+                
+                // إصلاح: دعم اختيار فترة مختلفة لكل مقارنة
                 const c1 = document.getElementById('fsComp1').value;
+                const c1t = document.getElementById('fsComp1Type').value;
+                const c1n = document.getElementById('fsComp1Num').value;
                 const c2 = document.getElementById('fsComp2').value;
+                const c2t = document.getElementById('fsComp2Type').value;
+                const c2n = document.getElementById('fsComp2Num').value;
                 const c3 = document.getElementById('fsComp3').value;
+                const c3t = document.getElementById('fsComp3Type').value;
+                const c3n = document.getElementById('fsComp3Num').value;
 
-                const baseData = await fetchDataFromCloud(getKey(y, t, n));
-                const comp1Data = await fetchDataFromCloud(getKey(c1, t, n));
-                const comp2Data = await fetchDataFromCloud(getKey(c2, t, n));
-                const comp3Data = await fetchDataFromCloud(getKey(c3, t, n));
+                // جلب البيانات بالتوازي
+                const [baseData, comp1Data, comp2Data, comp3Data] = await Promise.all([
+                    fetchDataFromCloud(getKey(y, t, n)),
+                    fetchDataFromCloud(getKey(c1, c1t, c1n)),
+                    fetchDataFromCloud(getKey(c2, c2t, c2n)),
+                    fetchDataFromCloud(getKey(c3, c3t, c3n))
+                ]);
 
                 const base = getFinancialSummary(baseData);
                 const comp1 = getFinancialSummary(comp1Data);
@@ -539,11 +1272,18 @@
 
                 if (!base) {
                     document.getElementById('fsPrintArea').innerHTML = `<div style="text-align:center; color:#ef4444; padding:80px 40px; font-size: 18px;">لا توجد بيانات للفترة الأساسية</div>`;
-                    return;
+                    loadingMsg.style.display = 'none'; return;
                 }
 
                 const L = i18n[currentLang];
-                const cols = [L.item, `${y}`, c1, c2, c3].filter((c, i) => i < 2 || (i===2 && comp1) || (i===3 && comp2) || (i===4 && comp3));
+                
+                // تسميات الأعمدة مع تفاصيل الفترة
+                const periodLabel = (yr, tp, nm) => {
+                    const typeName = tp==='Y'?'سنوي':tp==='Q'?'ربع سنوي':tp==='M'?'شهري':'نصف سنوي';
+                    return `${yr} ${typeName} ${nm !== '1' || tp === 'Y' ? nm : ''}`;
+                };
+                
+                const cols = [L.item, periodLabel(y,t,n), periodLabel(c1,c1t,c1n), periodLabel(c2,c2t,c2n), periodLabel(c3,c3t,c3n)].filter((c, i) => i < 2 || (i===2 && comp1) || (i===3 && comp2) || (i===4 && comp3));
                 
                 function buildTable(title, rowsDef) {
                     let html = `<div class="fs-card"><h3>${title}</h3><table class="fs-table"><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
@@ -579,10 +1319,12 @@
                     {name: L.end_period, key: 'cfEnd', isTotal: true}
                 ];
 
+                const typeName = t==='Y'?'سنوي':t==='Q'?'ربع سنوي':t==='M'?'شهري':'نصف سنوي';
+
                 const finalHtml = `
                     <div class="fs-header">
                         <h1>نتائج أعمال مؤسسة زاد الجود للوجبات السريعة</h1>
-                        <h2>القوائم المالية المقارنة - الفترة: ${t==='Y'?'سنوي':t==='Q'?'ربع سنوي':t==='M'?'شهري':'نصف سنوي'} ${n !== '1' || t === 'Y' ? n : ''} ${y}</h2>
+                        <h2>القوائم المالية المقارنة - الفترة: ${typeName} ${n !== '1' || t === 'Y' ? n : ''} ${y}</h2>
                     </div>
                     ${buildTable(L.nav_income, incRows)}
                     ${buildTable(L.nav_balance, balRows)}
@@ -593,6 +1335,7 @@
 
             } catch(e) {
                 showToast(i18n[currentLang].error, 'error');
+                console.error(e);
             } finally {
                 loadingMsg.style.display = 'none';
             }
@@ -600,7 +1343,7 @@
 
         window.exportFSPDF = function() {
             const element = document.getElementById('fsPrintArea');
-            element.classList.add('pdf-export-mode'); // Apply white theme for PDF
+            element.classList.add('pdf-export-mode');
             
             const opt = {
                 margin:       10,
@@ -611,9 +1354,10 @@
             };
             
             html2pdf().set(opt).from(element).save().then(() => {
-                element.classList.remove('pdf-export-mode'); // Revert to dark theme
+                element.classList.remove('pdf-export-mode');
             }).catch(() => {
                 element.classList.remove('pdf-export-mode');
+                showToast(i18n[currentLang].error, 'error');
             });
         }
 
@@ -623,18 +1367,51 @@
             XLSX.writeFile(wb, "Financial_Statements.xlsx");
         }
 
+        // ============ التصدير للنطاق العام ============
+        window.showScreen = showScreen; 
+        window.updatePeriodNumbers = updatePeriodNumbers; 
+        window.addRow = addRow; 
+        window.deleteRow = deleteRow;
+        window.calculateLocal = calculateLocal;
+        window.savePeriodData = savePeriodData; 
+        window.loadPeriodData = loadPeriodData; 
+        window.runHorizontalAnalysis = runHorizontalAnalysis;
+        window.generateMgmtReport = generateMgmtReport; 
+        window.exportToExcel = exportToExcel;
+        window.doLogin = doLogin; 
+        window.doLogout = doLogout; 
+        window.addUser = addUser; 
+        window.deleteUser = deleteUser;
+        window.downloadTemplate = downloadTemplate; 
+        window.uploadExcel = uploadExcel; 
+        window.toggleLanguage = toggleLanguage;
         window.generateFS = generateFS;
+        window.showConfirm = showConfirm;
 
-        // Global Scope
-        window.showScreen = showScreen; window.updatePeriodNumbers = updatePeriodNumbers; window.addRow = addRow; window.calculateLocal = calculateLocal;
-        window.savePeriodData = savePeriodData; window.loadPeriodData = loadPeriodData; window.runHorizontalAnalysis = runHorizontalAnalysis;
-        window.generateMgmtReport = generateMgmtReport; window.exportToExcel = exportToExcel;
-        window.doLogin = doLogin; window.doLogout = doLogout; window.addUser = addUser; window.deleteUser = deleteUser;
-        window.downloadTemplate = downloadTemplate; window.uploadExcel = uploadExcel; window.toggleLanguage = toggleLanguage;
-
-        // Init
-        populateYearDropdowns(); updatePeriodNumbers('selPeriodType','selPeriodNum'); updatePeriodNumbers('repType','repNum'); updatePeriodNumbers('fsType','fsNum');
+        // ============ التهيئة ============
+        populateYearDropdowns(); 
+        updatePeriodNumbers('selPeriodType','selPeriodNum'); 
+        updatePeriodNumbers('repType','repNum'); 
+        updatePeriodNumbers('fsType','fsNum'); 
+        updatePeriodNumbers('fsComp1Type','fsComp1Num'); 
+        updatePeriodNumbers('fsComp2Type','fsComp2Num'); 
+        updatePeriodNumbers('fsComp3Type','fsComp3Num');
         applyTranslations(); 
+        
+        // دعم دخول بالمفتاح Enter
+        document.getElementById('loginPass').addEventListener('keydown', (e) => { if(e.key === 'Enter') doLogin(); });
+        document.getElementById('loginUser').addEventListener('keydown', (e) => { if(e.key === 'Enter') document.getElementById('loginPass').focus(); });
+        
+        // دعم التنقل بلوحة المفاتيح في القائمة الجانبية
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('keydown', (e) => { 
+                if(e.key === 'Enter' || e.key === ' ') { 
+                    e.preventDefault(); 
+                    item.click(); 
+                } 
+            });
+        });
+        
         if(currentSession) { startApp(); }
     </script>
 </body>
