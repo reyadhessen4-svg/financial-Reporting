@@ -119,18 +119,39 @@
         body.role-viewer .btn-save, body.role-viewer .btn-add, body.role-viewer .btn-del { display: none !important; }
         body.role-viewer input, body.role-viewer select { pointer-events: none; opacity: 0.8; }
 
-        /* FINANCIAL STATEMENTS STYLES (PDF READY) */
-        #fsPrintArea { background: #fff; color: #000; padding: 30px; border-radius: 8px; direction: rtl; font-family: 'Cairo', sans-serif; }
-        .fs-header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
-        .fs-header h1 { margin: 0; font-size: 24px; color: #1e3a8a; }
-        .fs-header h2 { margin: 5px 0; font-size: 18px; }
-        .fs-section { margin-bottom: 30px; }
-        .fs-section h3 { font-size: 16px; color: #1e3a8a; border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 10px; }
-        .fs-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-        .fs-table th, .fs-table td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: right; }
-        .fs-table th { background-color: #f1f5f9; font-weight: bold; color: #334155; text-align: center; }
-        .fs-table .total-fs { font-weight: bold; background-color: #e2e8f0; }
-        .fs-table .subheader { font-weight: bold; background-color: #f8fafc; }
+        /* =========================================
+           PROFESSIONAL FINANCIAL STATEMENTS DESIGN 
+           ========================================= */
+        #fsPrintArea { background: var(--bg-dark); color: var(--text-main); padding: 0; border-radius: 12px; font-family: 'Cairo', sans-serif; overflow: hidden; }
+        .fs-header { text-align: center; margin-bottom: 30px; padding: 40px 30px 20px; background: linear-gradient(135deg, var(--surface) 0%, var(--bg-dark) 100%); border-bottom: 3px solid var(--primary); }
+        .fs-header h1 { margin: 0; font-size: 26px; color: var(--text-main); font-weight: 900; letter-spacing: -0.5px; }
+        .fs-header h2 { margin: 8px 0 0; font-size: 16px; color: var(--text-muted); font-weight: 600; }
+
+        .fs-card { background: var(--surface); border-radius: 8px; margin: 0 30px 25px; padding: 20px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .fs-card h3 { color: var(--primary); font-size: 18px; margin: 0 0 20px 0; padding-bottom: 10px; border-bottom: 1px solid var(--border); font-weight: 800; }
+
+        .fs-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .fs-table th { color: var(--text-muted); font-weight: 700; text-align: center; padding: 12px 5px; border-bottom: 2px solid var(--border); font-size: 13px; }
+        .fs-table td { padding: 15px 5px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .fs-table tr:last-child td { border-bottom: none; }
+        .fs-table .item-name { font-weight: 500; color: var(--text-main); padding-right: 15px; }
+        .fs-table .item-val { text-align: center; font-variant-numeric: tabular-nums; font-weight: 600; color: var(--text-muted); letter-spacing: 0.5px; }
+
+        .fs-table .total-fs td { padding-top: 18px; margin-top: 10px; font-weight: 800; color: var(--primary) !important; border-top: 2px solid var(--primary); border-bottom: none; background: rgba(59, 130, 246, 0.05); }
+        .fs-table .subheader td { font-weight: 700; color: var(--text-main); background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.1); }
+
+        /* PDF Specific Class for White Paper Printing */
+        .pdf-export-mode { background: #ffffff !important; color: #1e293b !important; }
+        .pdf-export-mode .fs-header { background: #f8fafc !important; border-bottom-color: #1e3a8a !important; }
+        .pdf-export-mode .fs-header h1 { color: #1e3a8a !important; }
+        .pdf-export-mode .fs-header h2 { color: #64748b !important; }
+        .pdf-export-mode .fs-card { background: #ffffff !important; border-color: #e2e8f0 !important; box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important; }
+        .pdf-export-mode .fs-card h3 { color: #1e3a8a !important; border-color: #e2e8f0 !important; }
+        .pdf-export-mode .fs-table th { color: #475569 !important; border-color: #e2e8f0 !important; }
+        .pdf-export-mode .fs-table td { color: #334155 !important; border-color: #f1f5f9 !important; }
+        .pdf-export-mode .fs-table .total-fs td { color: #1e3a8a !important; border-top-color: #1e3a8a !important; background: #eff6ff !important; }
+        .pdf-export-mode .fs-table .subheader td { color: #0f172a !important; background: #f8fafc !important; border-color: #e2e8f0 !important; }
+
     </style>
 </head>
 <body>
@@ -182,7 +203,6 @@
                 <div id="loadingMsg" class="loading" data-i18n="connecting">جاري الاتصال...</div>
             </div>
 
-            <!-- Existing Screens (income, balance, cashflow, dashboard, analysis) -->
             <div id="income" class="screen active">
                  <div class="card">
                     <div class="card-header"><span data-i18n="nav_income">قائمة الدخل</span></div>
@@ -254,42 +274,36 @@
                 <div class="card"><div class="card-header" data-i18n="fin_ratios">النسب المالية</div><div id="ratiosBody"></div></div>
             </div>
 
-            <!-- NEW: FINANCIAL STATEMENTS SCREEN -->
+            <!-- NEW: PROFESSIONAL FINANCIAL STATEMENTS SCREEN -->
             <div id="financialStatements" class="screen">
-                <div class="card">
-                    <div class="card-header">
-                        <span data-i18n="nav_fs">📋 القوائم المالية المقارنة</span>
+                <div style="display:flex; gap:15px; margin-bottom:20px; flex-wrap:wrap; align-items:flex-end; padding:20px; background:var(--surface); border-radius:12px; border:1px solid var(--border);">
+                    <div style="flex:1; min-width: 140px;">
+                        <label style="display:block; color:var(--primary); font-weight:bold; font-size:12px;">الفترة الأساسية</label>
+                        <select id="fsYear"></select>
+                        <select id="fsType" onchange="window.updatePeriodNumbers('fsType','fsNum')"><option value="Y">سنوي</option><option value="H">نصف سنوي</option><option value="Q">ربع سنوي</option><option value="M" selected>شهري</option></select>
+                        <select id="fsNum"></select>
                     </div>
-                    <div style="display:flex; gap:15px; margin-bottom:20px; flex-wrap:wrap; align-items:flex-end; padding:15px; background:var(--bg-dark); border-radius:8px; border:1px solid var(--border);">
-                        <div style="flex:1; min-width: 140px;">
-                            <label style="display:block; color:var(--primary); font-weight:bold; font-size:12px;">الفترة الأساسية</label>
-                            <select id="fsYear"></select>
-                            <select id="fsType" onchange="window.updatePeriodNumbers('fsType','fsNum')"><option value="Y">سنوي</option><option value="H">نصف سنوي</option><option value="Q">ربع سنوي</option><option value="M" selected>شهري</option></select>
-                            <select id="fsNum"></select>
-                        </div>
-                        <div style="flex:1; min-width: 140px;">
-                            <label style="display:block; color:var(--danger); font-weight:bold; font-size:12px;">مقارنة 1</label>
-                            <select id="fsComp1"></select>
-                        </div>
-                        <div style="flex:1; min-width: 140px;">
-                            <label style="display:block; color:var(--danger); font-weight:bold; font-size:12px;">مقارنة 2</label>
-                            <select id="fsComp2"></select>
-                        </div>
-                        <div style="flex:1; min-width: 140px;">
-                            <label style="display:block; color:var(--danger); font-weight:bold; font-size:12px;">مقارنة 3</label>
-                            <select id="fsComp3"></select>
-                        </div>
-                        <div style="display:flex; gap:10px; align-self: flex-end;">
-                            <button class="btn btn-primary" onclick="window.generateFS()">عرض القوائم</button>
-                            <button class="btn btn-success" onclick="window.exportFSPDF()">📥 PDF</button>
-                            <button class="btn btn-warning" onclick="window.exportFSExcel()">📊 Excel</button>
-                        </div>
+                    <div style="flex:1; min-width: 140px;">
+                        <label style="display:block; color:var(--danger); font-weight:bold; font-size:12px;">مقارنة 1</label>
+                        <select id="fsComp1"></select>
                     </div>
-                    
-                    <div id="fsPrintArea">
-                        <!-- Content will be injected here -->
-                        <div style="text-align:center; color:#64748b; padding:40px;">يرجى اختيار الفترات والضغط على "عرض القوائم"</div>
+                    <div style="flex:1; min-width: 140px;">
+                        <label style="display:block; color:var(--danger); font-weight:bold; font-size:12px;">مقارنة 2</label>
+                        <select id="fsComp2"></select>
                     </div>
+                    <div style="flex:1; min-width: 140px;">
+                        <label style="display:block; color:var(--danger); font-weight:bold; font-size:12px;">مقارنة 3</label>
+                        <select id="fsComp3"></select>
+                    </div>
+                    <div style="display:flex; gap:10px; align-self: flex-end;">
+                        <button class="btn btn-primary" onclick="window.generateFS()">عرض القوائم</button>
+                        <button class="btn btn-success" onclick="window.exportFSPDF()">📥 PDF</button>
+                        <button class="btn btn-warning" onclick="window.exportFSExcel()">📊 Excel</button>
+                    </div>
+                </div>
+                
+                <div id="fsPrintArea">
+                    <div style="text-align:center; color:#64748b; padding:80px 40px; font-size: 18px;">يرجى اختيار الفترات والضغط على "عرض القوائم"</div>
                 </div>
             </div>
 
@@ -425,98 +439,27 @@
         };
 
         function applyTranslations() {
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (i18n[currentLang][key]) el.innerText = i18n[currentLang][key];
-            });
-            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-                const key = el.getAttribute('data-i18n-placeholder');
-                if (i18n[currentLang][key]) el.placeholder = i18n[currentLang][key];
-            });
-            document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
-            document.documentElement.lang = currentLang;
+            document.querySelectorAll('[data-i18n]').forEach(el => { const key = el.getAttribute('data-i18n'); if (i18n[currentLang][key]) el.innerText = i18n[currentLang][key]; });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { const key = el.getAttribute('data-i18n-placeholder'); if (i18n[currentLang][key]) el.placeholder = i18n[currentLang][key]; });
+            document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr'; document.documentElement.lang = currentLang;
         }
 
-        window.toggleLanguage = function() {
-            currentLang = currentLang === 'ar' ? 'en' : 'ar';
-            localStorage.setItem('app_lang', currentLang);
-            applyTranslations();
-            calculateLocal(); 
-        };
+        window.toggleLanguage = function() { currentLang = currentLang === 'ar' ? 'en' : 'ar'; localStorage.setItem('app_lang', currentLang); applyTranslations(); calculateLocal(); };
 
         async function doLogin() {
-            const username = document.getElementById('loginUser').value; 
-            const password = document.getElementById('loginPass').value;
-            
-            if(!username || !password) {
-                showToast(i18n[currentLang].login_empty, 'warning');
-                return;
-            }
-            
-            document.getElementById('loginError').style.display = 'none'; 
-            document.getElementById('loginBtn').innerText = '...';
-            
+            const username = document.getElementById('loginUser').value; const password = document.getElementById('loginPass').value;
+            if(!username || !password) { showToast(i18n[currentLang].login_empty, 'warning'); return; }
+            document.getElementById('loginError').style.display = 'none'; document.getElementById('loginBtn').innerText = '...';
             try {
-                if(username === 'admin') { 
-                    try {
-                        const adminDoc = await getDoc(doc(db, "app_users", "admin")); 
-                        if(!adminDoc.exists()) { 
-                            await setDoc(doc(db, "app_users", "admin"), { password: "admin123", role: "admin" }); 
-                        }
-                    } catch(e) {
-                        if(e.code === 'permission-denied') {
-                            showToast(i18n[currentLang].db_permission_error, 'error');
-                        }
-                    }
-                }
-                
+                if(username === 'admin') { try { const adminDoc = await getDoc(doc(db, "app_users", "admin")); if(!adminDoc.exists()) { await setDoc(doc(db, "app_users", "admin"), { password: "admin123", role: "admin" }); } } catch(e) { if(e.code === 'permission-denied') { showToast(i18n[currentLang].db_permission_error, 'error'); } } }
                 const userDoc = await getDoc(doc(db, "app_users", username));
-                
-                if (userDoc.exists() && userDoc.data().password === password) { 
-                    currentSession = { user: username, role: userDoc.data().role }; 
-                    sessionStorage.setItem('zad_session', JSON.stringify(currentSession)); 
-                    startApp(); 
-                } else { 
-                    document.getElementById('loginError').style.display = 'block'; 
-                }
-            } catch(e) { 
-                if(e.code === 'permission-denied') {
-                    showToast(i18n[currentLang].db_permission_error, 'error');
-                } else {
-                    showToast(i18n[currentLang].error, 'error');
-                }
-            } finally { 
-                document.getElementById('loginBtn').innerText = i18n[currentLang].login_btn; 
-            }
+                if (userDoc.exists() && userDoc.data().password === password) { currentSession = { user: username, role: userDoc.data().role }; sessionStorage.setItem('zad_session', JSON.stringify(currentSession)); startApp(); } else { document.getElementById('loginError').style.display = 'block'; }
+            } catch(e) { if(e.code === 'permission-denied') { showToast(i18n[currentLang].db_permission_error, 'error'); } else { showToast(i18n[currentLang].error, 'error'); } } finally { document.getElementById('loginBtn').innerText = i18n[currentLang].login_btn; }
         }
-        
         function doLogout() { sessionStorage.removeItem('zad_session'); currentSession = null; document.getElementById('appContainer').style.display = 'none'; document.getElementById('loginScreen').style.display = 'flex'; }
-        
         function startApp() { if (!currentSession) return; document.getElementById('loginScreen').style.display = 'none'; document.getElementById('appContainer').style.display = 'flex'; document.getElementById('appContainer').className = `role-${currentSession.role}`; document.getElementById('currentUserDisplay').innerText = `${i18n[currentLang].username}: ${currentSession.user}`; loadUsersTable(); calculateLocal(); }
-        
         async function loadUsersTable() { const tbody = document.getElementById('usersTableBody'); tbody.innerHTML = ''; try { const q = await getDocs(collection(db, "app_users")); q.forEach((d) => { const u = d.data(); const roleName = u.role === 'admin' ? (currentLang==='ar'?'مدير':'Admin') : u.role === 'accountant' ? (currentLang==='ar'?'محاسب':'Accountant') : (currentLang==='ar'?'مشاهد':'Viewer'); const delBtn = d.id === 'admin' ? '' : `<button class="btn btn-danger btn-small btn-del" onclick="window.deleteUser('${d.id}')">${currentLang==='ar'?'حذف':'Delete'}</button>`; tbody.innerHTML += `<tr><td>${d.id}</td><td>${roleName}</td><td>${delBtn}</td></tr>`; }); } catch(e) {} }
-        
-        async function addUser() { 
-            const name = document.getElementById('newUserName').value; 
-            const pass = document.getElementById('newUserPass').value; 
-            const role = document.getElementById('newUserRole').value; 
-            
-            if(!name || !pass) { 
-                showToast(i18n[currentLang].login_empty, 'warning'); 
-                return; 
-            } 
-            
-            try { 
-                await setDoc(doc(db, "app_users", name), { password: pass, role: role }); 
-                document.getElementById('newUserName').value = ''; 
-                document.getElementById('newUserPass').value = ''; 
-                loadUsersTable(); 
-                showToast(i18n[currentLang].saved, 'success');
-            } catch(e) { 
-                showToast(i18n[currentLang].db_permission_error, 'error'); 
-            } 
-        }
-        
+        async function addUser() { const name = document.getElementById('newUserName').value; const pass = document.getElementById('newUserPass').value; const role = document.getElementById('newUserRole').value; if(!name || !pass) { showToast(i18n[currentLang].login_empty, 'warning'); return; } try { await setDoc(doc(db, "app_users", name), { password: pass, role: role }); document.getElementById('newUserName').value = ''; document.getElementById('newUserPass').value = ''; loadUsersTable(); showToast(i18n[currentLang].saved, 'success'); } catch(e) { showToast(i18n[currentLang].db_permission_error, 'error'); } }
         async function deleteUser(username) { if(confirm(`${currentLang==='ar'?'حذف':'Delete'} ${username}?`)) { try { await deleteDoc(doc(db, "app_users", username)); loadUsersTable(); } catch(e) { showToast(i18n[currentLang].error, 'error'); } } }
 
         async function fetchDataFromCloud(key) { try { const docRef = doc(db, "financial_periods", key); const docSnap = await getDoc(docRef); return docSnap.exists() ? docSnap.data() : null; } catch(e) { return null; } }
@@ -534,59 +477,16 @@
 
         function getFinancialSummary(data) { if(!data || !data.inc) return null; const sum = (arr) => arr.reduce((a,b)=>a+(b.amount||0),0); const sumNC = (arr) => arr.reduce((a,b)=>a+(b.isNonCash?(b.amount||0):0),0); const rev=sum(data.inc.rev), cogs=sum(data.inc.cogs), gp=rev-cogs, opex=sum(data.inc.opex), ebitda=gp-opex, dep=sum(data.inc.dep), ebit=ebitda-dep, tax=sum(data.inc.tax), np=ebit-tax; const totalNonCash = sumNC(data.inc.rev)+sumNC(data.inc.cogs)+sumNC(data.inc.opex)+sumNC(data.inc.dep)+sumNC(data.inc.tax); const ca=sum(data.bal.ca); let fixed=0, accDep=0, intan=0, accAmort=0, otherNca=0; data.bal.nca.forEach(i => { if(i.assetType==='fixed') fixed+=i.amount; else if(i.assetType==='acc_dep') accDep+=i.amount; else if(i.assetType==='intan') intan+=i.amount; else if(i.assetType==='acc_amort') accAmort+=i.amount; else otherNca+=i.amount; }); const tnca=(fixed-accDep)+(intan-accAmort)+otherNca, ta=ca+tnca, tl=sum(data.bal.liab), teq=sum(data.bal.eq), tle=tl+teq; const cfOp=np+totalNonCash+sum(data.cf.op), cfInv=sum(data.cf.inv), cfFin=sum(data.cf.fin), cfNet=cfOp+cfInv+cfFin, cfEnd=data.cf.beg+cfNet; return { rev, cogs, gp, opex, ebitda, dep, ebit, tax, np, ca, tnca, ta, tl, teq, tle, cfOp, cfInv, cfFin, cfNet, cfEnd }; }
 
-        async function savePeriodData() { 
-            if(currentSession.role === 'viewer') return; 
-            loadingMsg.style.display = 'block'; 
-            const key = getCurrentKey(); 
-            const data = { inc: { rev: getTableData('tbl_rev','noncash'), cogs: getTableData('tbl_cogs','noncash'), opex: getTableData('tbl_opex','noncash'), dep: getTableData('tbl_dep','noncash'), tax: getTableData('tbl_tax','noncash') }, bal: { ca: getTableData('tbl_ca','none'), nca: getTableData('tbl_nca','asset'), liab: getTableData('tbl_liab','none'), eq: getTableData('tbl_eq','none') }, cf: { op: getTableData('tbl_cf_op','none'), inv: getTableData('tbl_cf_inv','none'), fin: getTableData('tbl_cf_fin','none'), beg: parseFloat(document.getElementById('cf_beg').value)||0 } }; 
-            try { 
-                await setDoc(doc(db, "financial_periods", key), data); 
-                showToast(i18n[currentLang].saved, 'success'); 
-            } catch (e) { 
-                showToast(i18n[currentLang].db_permission_error, 'error'); 
-            } finally {
-                loadingMsg.style.display = 'none';
-            }
-        }
-        
+        async function savePeriodData() { if(currentSession.role === 'viewer') return; loadingMsg.style.display = 'block'; const key = getCurrentKey(); const data = { inc: { rev: getTableData('tbl_rev','noncash'), cogs: getTableData('tbl_cogs','noncash'), opex: getTableData('tbl_opex','noncash'), dep: getTableData('tbl_dep','noncash'), tax: getTableData('tbl_tax','noncash') }, bal: { ca: getTableData('tbl_ca','none'), nca: getTableData('tbl_nca','asset'), liab: getTableData('tbl_liab','none'), eq: getTableData('tbl_eq','none') }, cf: { op: getTableData('tbl_cf_op','none'), inv: getTableData('tbl_cf_inv','none'), fin: getTableData('tbl_cf_fin','none'), beg: parseFloat(document.getElementById('cf_beg').value)||0 } }; try { await setDoc(doc(db, "financial_periods", key), data); showToast(i18n[currentLang].saved, 'success'); } catch (e) { showToast(i18n[currentLang].db_permission_error, 'error'); } finally { loadingMsg.style.display = 'none'; } }
         function zeroOutData(data) { let d = JSON.parse(JSON.stringify(data)); const zeroArr = (arr) => arr.forEach(i => i.amount=0); [d.inc.rev, d.inc.cogs, d.inc.opex, d.inc.dep, d.inc.tax, d.bal.ca, d.bal.nca, d.bal.liab, d.bal.eq, d.cf.op, d.cf.inv, d.cf.fin].forEach(zeroArr); d.cf.beg = 0; return d; }
         function getPrevKey() { let y=parseInt(document.getElementById('selYear').value), t=document.getElementById('selPeriodType').value, n=parseInt(document.getElementById('selPeriodNum').value); let pN=n-1, pY=y; if(pN===0){ pY=y-1; pN=t==='H'?2:t==='Q'?4:12; } return getKey(pY,t,pN); }
-        
-        async function loadPeriodData() { 
-            loadingMsg.style.display = 'block'; 
-            const key = getCurrentKey(); 
-            try { 
-                let data = await fetchDataFromCloud(key); 
-                if(!data) { 
-                    const prevKey = getPrevKey(); 
-                    let prevData = await fetchDataFromCloud(prevKey); 
-                    if(prevData) { 
-                        if(confirm(i18n[currentLang].import_struct)) data=zeroOutData(prevData); 
-                        else { return; } 
-                    } else { 
-                        showToast(i18n[currentLang].no_data_err, 'warning'); 
-                        return; 
-                    } 
-                } 
-                populateTable('tbl_rev',data.inc.rev,'noncash'); populateTable('tbl_cogs',data.inc.cogs,'noncash'); populateTable('tbl_opex',data.inc.opex,'noncash'); populateTable('tbl_dep',data.inc.dep,'noncash'); populateTable('tbl_tax',data.inc.tax,'noncash'); populateTable('tbl_ca',data.bal.ca,'none'); populateTable('tbl_nca',data.bal.nca,'asset'); populateTable('tbl_liab',data.bal.liab,'none'); populateTable('tbl_eq',data.bal.eq,'none'); populateTable('tbl_cf_op',data.cf.op,'none'); populateTable('tbl_cf_inv',data.cf.inv,'none'); populateTable('tbl_cf_fin',data.cf.fin,'none'); document.getElementById('cf_beg').value=data.cf.beg; calculateLocal(); 
-            } catch(e) { 
-                showToast(i18n[currentLang].error, 'error'); 
-            } finally {
-                loadingMsg.style.display = 'none';
-            }
-        }
+        async function loadPeriodData() { loadingMsg.style.display = 'block'; const key = getCurrentKey(); try { let data = await fetchDataFromCloud(key); if(!data) { const prevKey = getPrevKey(); let prevData = await fetchDataFromCloud(prevKey); if(prevData) { if(confirm(i18n[currentLang].import_struct)) data=zeroOutData(prevData); else { return; } } else { showToast(i18n[currentLang].no_data_err, 'warning'); return; } } populateTable('tbl_rev',data.inc.rev,'noncash'); populateTable('tbl_cogs',data.inc.cogs,'noncash'); populateTable('tbl_opex',data.inc.opex,'noncash'); populateTable('tbl_dep',data.inc.dep,'noncash'); populateTable('tbl_tax',data.inc.tax,'noncash'); populateTable('tbl_ca',data.bal.ca,'none'); populateTable('tbl_nca',data.bal.nca,'asset'); populateTable('tbl_liab',data.bal.liab,'none'); populateTable('tbl_eq',data.bal.eq,'none'); populateTable('tbl_cf_op',data.cf.op,'none'); populateTable('tbl_cf_inv',data.cf.inv,'none'); populateTable('tbl_cf_fin',data.cf.fin,'none'); document.getElementById('cf_beg').value=data.cf.beg; calculateLocal(); } catch(e) { showToast(i18n[currentLang].error, 'error'); } finally { loadingMsg.style.display = 'none'; } }
 
         function calculateLocal() { 
             const rev = sumTable('tbl_rev',true), cogs = sumTable('tbl_cogs',true), gp = rev.total-cogs.total, opex = sumTable('tbl_opex',true), ebitda = gp-opex.total, dep = sumTable('tbl_dep',true), ebit = ebitda-dep.total, tax = sumTable('tbl_tax',true), np = ebit-tax.total, totalNonCash = rev.nonCash+cogs.nonCash+opex.nonCash+dep.nonCash+tax.nonCash; 
             document.getElementById('val_gp').innerText=fmt(gp); document.getElementById('val_ebitda').innerText=fmt(ebitda); document.getElementById('val_ebit').innerText=fmt(ebit); document.getElementById('val_np').innerText=fmt(np); 
-            
-            const ca = sumTable('tbl_ca').total; 
-            let fixed=0, accDep=0, intan=0, accAmort=0, otherNca=0; 
-            Array.from(document.getElementById('tbl_nca').querySelector('tbody').rows).forEach(r => { 
-                const val = parseFloat(r.cells[1].querySelector('input').value)||0; 
-                const type = r.cells[2].querySelector('select').value; 
-                if(type==='fixed') fixed+=val; else if(type==='acc_dep') accDep+=val; else if(type==='intan') intan+=val; else if(type==='acc_amort') accAmort+=val; else otherNca+=val; 
-            }); 
+            const ca = sumTable('tbl_ca').total; let fixed=0, accDep=0, intan=0, accAmort=0, otherNca=0; 
+            Array.from(document.getElementById('tbl_nca').querySelector('tbody').rows).forEach(r => { const val = parseFloat(r.cells[1].querySelector('input').value)||0; const type = r.cells[2].querySelector('select').value; if(type==='fixed') fixed+=val; else if(type==='acc_dep') accDep+=val; else if(type==='intan') intan+=val; else if(type==='acc_amort') accAmort+=val; else otherNca+=val; }); 
             const netFixed=fixed-accDep, netIntan=intan-accAmort, tnca=netFixed+netIntan+otherNca, ta=ca+tnca, tl = sumTable('tbl_liab').total, teq = sumTable('tbl_eq').total, tle=tl+teq, diff=ta-tle; 
             document.getElementById('val_tca').innerText=fmt(ca); document.getElementById('val_netfixed').innerText=fmt(netFixed); document.getElementById('val_netintan').innerText=fmt(netIntan); document.getElementById('val_tnca').innerText=fmt(tnca); document.getElementById('val_ta').innerText=fmt(ta); document.getElementById('val_tl').innerText=fmt(tl); document.getElementById('val_teq').innerText=fmt(teq); document.getElementById('val_tle').innerText=fmt(tle); document.getElementById('val_diff').innerText=fmt(diff); document.getElementById('balanceCheck').style.borderColor = diff===0?"var(--success)":"var(--danger)"; 
             document.getElementById('cf_np').innerText=fmt(np); document.getElementById('cf_noncash').innerText=fmt(totalNonCash); 
@@ -599,80 +499,24 @@
         async function updateDashboardCharts(curRev, curProf, curCash, curCfOp, curCfInv, curCfFin) { let y = parseInt(document.getElementById('selYear').value); let t = document.getElementById('selPeriodType').value; let n = document.getElementById('selPeriodNum').value; let d1 = await fetchDataFromCloud(getKey(y-1, t, n)); let d2 = await fetchDataFromCloud(getKey(y-2, t, n)); let d3 = await fetchDataFromCloud(getKey(y-3, t, n)); let s1 = d1 ? getFinancialSummary(d1) : null; let s2 = d2 ? getFinancialSummary(d2) : null; let s3 = d3 ? getFinancialSummary(d3) : null; function calcChg(elemId, curr, prev, yearLabel) { let elem = document.getElementById(elemId); if(prev && prev > 0) { let pct = ((curr - prev) / prev * 100).toFixed(1); let isUp = pct >= 0; elem.className = `change ${isUp ? 'up' : 'down'}`; elem.innerText = `${isUp ? '▲' : '▼'} ${Math.abs(pct)}% ${i18n[currentLang].about_var} ${yearLabel}`; } else { elem.innerText = i18n[currentLang].new_text; } } calcChg('d_rev_chg', curRev, s1?.rev, y-1); calcChg('d_prof_chg', curProf, s1?.np, y-1); calcChg('d_cash_chg', curCash, s1?.cfEnd, y-1); if(window.chart1Obj) window.chart1Obj.destroy(); window.chart1Obj = new Chart(document.getElementById('chart1'), { type: 'bar', data: { labels: [y-3, y-2, y-1, y], datasets: [ { label: i18n[currentLang].revenues, data: [s3?.rev||0, s2?.rev||0, s1?.rev||0, curRev], backgroundColor: '#3b82f6', borderRadius: 4 }, { label: i18n[currentLang].net_income, data: [s3?.np||0, s2?.np||0, s1?.np||0, curProf], backgroundColor: '#10b981', borderRadius: 4 } ] }, options: { plugins: { legend: { labels: { color: '#94a3b8' } } }, scales: { y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } } } }); if(window.chart2Obj) window.chart2Obj.destroy(); window.chart2Obj = new Chart(document.getElementById('chart2'), { type: 'bar', data: { labels: [i18n[currentLang].cf_op_total, i18n[currentLang].cf_inv_total, i18n[currentLang].cf_fin_total], datasets:[{data:[curCfOp, curCfInv, curCfFin], backgroundColor:['#3b82f6','#8b5cf6','#ec4899'], borderRadius: 4}] }, options:{plugins:{legend:{display:false}}, scales: { y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } }}}); }
 
         function analyzeItems() { 
-            let revItems = []; 
-            Array.from(document.getElementById('tbl_rev').querySelector('tbody').rows).forEach(r => { 
-                let v = parseFloat(r.cells[1].querySelector('input').value)||0; if(v > 0) revItems.push({name: r.cells[0].querySelector('input').value, amount: v}); 
-            }); 
-            revItems.sort((a,b) => b.amount - a.amount); 
-            document.getElementById('topRevList').innerHTML = revItems.slice(0,3).map(i => `<li><span>${i.name}</span> <span style="font-weight:bold;color:var(--primary)">${fmt(i.amount)} ${i18n[currentLang].currency}</span></li>`).join('') || `<li>${i18n[currentLang].no_data}</li>`; 
-            
-            let costTables = ['tbl_cogs', 'tbl_opex', 'tbl_dep', 'tbl_tax']; 
-            let costItems = []; 
-            costTables.forEach(tid => { 
-                Array.from(document.getElementById(tid).querySelector('tbody').rows).forEach(r => { 
-                    let v = Math.abs(parseFloat(r.cells[1].querySelector('input').value)||0); if(v > 0) costItems.push({name: r.cells[0].querySelector('input').value, amount: v}); 
-                }); 
-            }); 
-            costItems.sort((a,b) => b.amount - a.amount); 
-            document.getElementById('topCostList').innerHTML = costItems.slice(0,3).map(i => `<li><span>${i.name}</span> <span style="font-weight:bold;color:var(--danger)">${fmt(i.amount)} ${i18n[currentLang].currency}</span></li>`).join('') || `<li>${i18n[currentLang].no_data}</li>`; 
+            let revItems = []; Array.from(document.getElementById('tbl_rev').querySelector('tbody').rows).forEach(r => { let v = parseFloat(r.cells[1].querySelector('input').value)||0; if(v > 0) revItems.push({name: r.cells[0].querySelector('input').value, amount: v}); }); revItems.sort((a,b) => b.amount - a.amount); document.getElementById('topRevList').innerHTML = revItems.slice(0,3).map(i => `<li><span>${i.name}</span> <span style="font-weight:bold;color:var(--primary)">${fmt(i.amount)} ${i18n[currentLang].currency}</span></li>`).join('') || `<li>${i18n[currentLang].no_data}</li>`; 
+            let costTables = ['tbl_cogs', 'tbl_opex', 'tbl_dep', 'tbl_tax']; let costItems = []; costTables.forEach(tid => { Array.from(document.getElementById(tid).querySelector('tbody').rows).forEach(r => { let v = Math.abs(parseFloat(r.cells[1].querySelector('input').value)||0); if(v > 0) costItems.push({name: r.cells[0].querySelector('input').value, amount: v}); }); }); costItems.sort((a,b) => b.amount - a.amount); document.getElementById('topCostList').innerHTML = costItems.slice(0,3).map(i => `<li><span>${i.name}</span> <span style="font-weight:bold;color:var(--danger)">${fmt(i.amount)} ${i18n[currentLang].currency}</span></li>`).join('') || `<li>${i18n[currentLang].no_data}</li>`; 
         }
 
         function renderVerticalAnalysis(rev, gp, opex, np) { const L = i18n[currentLang]; const vData = [{n:L.revenues,v:rev,p:100},{n:L.gp,v:gp,p:rev?gp/rev*100:0},{n:L.opex,v:opex,p:rev?opex/rev*100:0},{n:L.net_income,v:np,p:rev?np/rev*100:0}]; document.getElementById('anvBody').innerHTML = vData.map(d=>`<tr><td>${d.n}</td><td>${fmt(d.v)}</td><td>${d.p.toFixed(1)}%</td></tr>`).join(''); }
         function renderRatios(rev, np, ca, tl, tle, ta, teq) { const L = i18n[currentLang]; const currentRatio = tl?(ca/tl).toFixed(2):0; const debtRatio = ta?(tle/ta*100).toFixed(1):0; const roe = teq?(np/teq*100).toFixed(1):0; const netMargin = rev?(np/rev*100).toFixed(1):0; document.getElementById('ratiosBody').innerHTML = `<div class="mgmt-card"><h4>${L.liquidity}: ${currentRatio}</h4><p>${currentRatio>=1.5?'🟢 '+L.excellent:currentRatio>=1?'🟡 '+L.acceptable:'🔴 '+L.risk}</p></div><div class="mgmt-card"><h4>${L.profit_margin}: ${netMargin}%</h4><p>${L.liq_desc.replace('{margin}', netMargin)}</p></div><div class="mgmt-card"><h4>${L.roi}: ${roe}%</h4><p>${L.roi_desc.replace('{roi}', roe)}</p></div><div class="mgmt-card"><h4>${L.debts}: ${debtRatio}%</h4><p>${debtRatio>70?'🔴 '+L.status_danger:'🟢 '+L.status_safe}</p></div>`; }
 
-        async function runHorizontalAnalysis() { 
-            loadingMsg.style.display = 'block'; 
-            try {
-                const L = i18n[currentLang]; const baseYear = document.getElementById('baseYear').value; const c1 = document.getElementById('c1Year').value; const c2 = document.getElementById('c2Year').value; const c3 = document.getElementById('c3Year').value; const pType = document.getElementById('selPeriodType').value; const pNum = document.getElementById('selPeriodNum').value; const base = getFinancialSummary(await fetchDataFromCloud(getKey(baseYear, pType, pNum))); const d1 = getFinancialSummary(await fetchDataFromCloud(getKey(c1, pType, pNum))); const d2 = getFinancialSummary(await fetchDataFromCloud(getKey(c2, pType, pNum))); const d3 = getFinancialSummary(await fetchDataFromCloud(getKey(c3, pType, pNum))); if(!base) { showToast(L.no_data_err, 'warning'); return; } document.getElementById('hTableHead').innerHTML = `<tr><th rowspan="2">${L.item}</th><th rowspan="2">${baseYear}</th><th colspan="2">${d1?c1:L.empty}</th><th colspan="2">${d2?c2:L.empty}</th><th colspan="2">${d3?c3:L.empty}</th></tr><tr><th>${L.amount}</th><th>%</th><th>${L.amount}</th><th>%</th><th>${L.amount}</th><th>%</th></tr>`; const rowsDef = [{name: L.revenues, key: 'rev', isGood: true},{name: L.cogs, key: 'cogs', isGood: false},{name: L.gp, key: 'gp', isGood: true},{name: L.opex, key: 'opex', isGood: false},{name: L.net_income, key: 'np', isGood: true},{name: L.total_assets, key: 'ta', isGood: true},{name: L.liab, key: 'tl', isGood: false},{name: L.eq, key: 'teq', isGood: true}]; let html = ''; rowsDef.forEach(row => { html += `<tr><td><strong>${row.name}</strong></td><td>${fmt(base[row.key])}</td>`; [d1, d2, d3].forEach(comp => { if(comp) { const diff = base[row.key] - comp[row.key]; const perc = comp[row.key] !== 0 ? (diff / Math.abs(comp[row.key])) * 100 : 0; const isGood = row.isGood ? diff >= 0 : diff <= 0; const colorClass = isGood ? 'change-pos' : 'change-neg'; const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '-'; html += `<td>${fmt(comp[row.key])}</td><td class="${colorClass}">${arrow} ${perc.toFixed(1)}%</td>`; } else { html += `<td>-</td><td>-</td>`; } }); html += `</tr>`; }); document.getElementById('anhBody').innerHTML = html;
-            } catch(e) { 
-                showToast(i18n[currentLang].error, 'error'); 
-            } finally {
-                loadingMsg.style.display = 'none';
-            }
-        }
+        async function runHorizontalAnalysis() { loadingMsg.style.display = 'block'; try { const L = i18n[currentLang]; const baseYear = document.getElementById('baseYear').value; const c1 = document.getElementById('c1Year').value; const c2 = document.getElementById('c2Year').value; const c3 = document.getElementById('c3Year').value; const pType = document.getElementById('selPeriodType').value; const pNum = document.getElementById('selPeriodNum').value; const base = getFinancialSummary(await fetchDataFromCloud(getKey(baseYear, pType, pNum))); const d1 = getFinancialSummary(await fetchDataFromCloud(getKey(c1, pType, pNum))); const d2 = getFinancialSummary(await fetchDataFromCloud(getKey(c2, pType, pNum))); const d3 = getFinancialSummary(await fetchDataFromCloud(getKey(c3, pType, pNum))); if(!base) { showToast(L.no_data_err, 'warning'); return; } document.getElementById('hTableHead').innerHTML = `<tr><th rowspan="2">${L.item}</th><th rowspan="2">${baseYear}</th><th colspan="2">${d1?c1:L.empty}</th><th colspan="2">${d2?c2:L.empty}</th><th colspan="2">${d3?c3:L.empty}</th></tr><tr><th>${L.amount}</th><th>%</th><th>${L.amount}</th><th>%</th><th>${L.amount}</th><th>%</th></tr>`; const rowsDef = [{name: L.revenues, key: 'rev', isGood: true},{name: L.cogs, key: 'cogs', isGood: false},{name: L.gp, key: 'gp', isGood: true},{name: L.opex, key: 'opex', isGood: false},{name: L.net_income, key: 'np', isGood: true},{name: L.total_assets, key: 'ta', isGood: true},{name: L.liab, key: 'tl', isGood: false},{name: L.eq, key: 'teq', isGood: true}]; let html = ''; rowsDef.forEach(row => { html += `<tr><td><strong>${row.name}</strong></td><td>${fmt(base[row.key])}</td>`; [d1, d2, d3].forEach(comp => { if(comp) { const diff = base[row.key] - comp[row.key]; const perc = comp[row.key] !== 0 ? (diff / Math.abs(comp[row.key])) * 100 : 0; const isGood = row.isGood ? diff >= 0 : diff <= 0; const colorClass = isGood ? 'change-pos' : 'change-neg'; const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '-'; html += `<td>${fmt(comp[row.key])}</td><td class="${colorClass}">${arrow} ${perc.toFixed(1)}%</td>`; } else { html += `<td>-</td><td>-</td>`; } }); html += `</tr>`; }); document.getElementById('anhBody').innerHTML = html; } catch(e) { showToast(i18n[currentLang].error, 'error'); } finally { loadingMsg.style.display = 'none'; } }
 
-        async function generateMgmtReport() { 
-            loadingMsg.style.display = 'block'; 
-            try {
-                const L = i18n[currentLang]; const y = document.getElementById('repYear').value; const t = document.getElementById('repType').value; const n = document.getElementById('repNum').value; const data = await fetchDataFromCloud(getKey(y,t,n)); if(!data) { document.getElementById('mgmtBody').innerHTML = `<div style="text-align:center; padding:30px; color:var(--danger);">${L.no_data_err}</div>`; return; } const s = getFinancialSummary(data); const netMargin = s.rev ? (s.np/s.rev*100).toFixed(1) : 0; const cashCoverage = s.opex > 0 ? (s.cfEnd / s.opex).toFixed(1) : 0; const debtRatio = s.ta ? (s.tl/s.ta*100).toFixed(1) : 0; const debtStatus = s.tl<s.teq ? L.status_safe : L.status_danger; const cfDirection = s.cfNet > 0 ? L.increased : L.decreased; document.getElementById('mgmtBody').innerHTML = `<div class="mgmt-card"><h3><span class="traffic-light ${s.np>0?'tl-green':'tl-red'}"></span> ${L.rep_profit_q}</h3><p>${L.rep_profit_a.replace('{rev}', fmt(s.rev)).replace('{np}', fmt(s.np)).replace('{margin}', netMargin)}</p></div><div class="mgmt-card"><h3><span class="traffic-light ${s.cfEnd>s.opex?'tl-green':'tl-yellow'}"></span> ${L.rep_cash_q}</h3><p>${L.rep_cash_a.replace('{cash}', fmt(s.cfEnd)).replace('{coverage}', cashCoverage)}</p></div><div class="mgmt-card"><h3><span class="traffic-light ${s.tl<s.teq?'tl-green':'tl-red'}"></span> ${L.rep_debt_q}</h3><p>${L.rep_debt_a.replace('{ratio}', debtRatio).replace('{status}', debtStatus)}</p></div><div class="mgmt-card"><h3><span class="traffic-light ${s.cfOp>0?'tl-green':'tl-red'}"></span> ${L.rep_where_q}</h3><p>${L.rep_where_a.replace('{direction}', cfDirection).replace('{net}', fmt(Math.abs(s.cfNet)))}</p></div>`;
-            } catch(e) { 
-                showToast(i18n[currentLang].error, 'error'); 
-            } finally {
-                loadingMsg.style.display = 'none';
-            }
-        }
+        async function generateMgmtReport() { loadingMsg.style.display = 'block'; try { const L = i18n[currentLang]; const y = document.getElementById('repYear').value; const t = document.getElementById('repType').value; const n = document.getElementById('repNum').value; const data = await fetchDataFromCloud(getKey(y,t,n)); if(!data) { document.getElementById('mgmtBody').innerHTML = `<div style="text-align:center; padding:30px; color:var(--danger);">${L.no_data_err}</div>`; return; } const s = getFinancialSummary(data); const netMargin = s.rev ? (s.np/s.rev*100).toFixed(1) : 0; const cashCoverage = s.opex > 0 ? (s.cfEnd / s.opex).toFixed(1) : 0; const debtRatio = s.ta ? (s.tl/s.ta*100).toFixed(1) : 0; const debtStatus = s.tl<s.teq ? L.status_safe : L.status_danger; const cfDirection = s.cfNet > 0 ? L.increased : L.decreased; document.getElementById('mgmtBody').innerHTML = `<div class="mgmt-card"><h3><span class="traffic-light ${s.np>0?'tl-green':'tl-red'}"></span> ${L.rep_profit_q}</h3><p>${L.rep_profit_a.replace('{rev}', fmt(s.rev)).replace('{np}', fmt(s.np)).replace('{margin}', netMargin)}</p></div><div class="mgmt-card"><h3><span class="traffic-light ${s.cfEnd>s.opex?'tl-green':'tl-yellow'}"></span> ${L.rep_cash_q}</h3><p>${L.rep_cash_a.replace('{cash}', fmt(s.cfEnd)).replace('{coverage}', cashCoverage)}</p></div><div class="mgmt-card"><h3><span class="traffic-light ${s.tl<s.teq?'tl-green':'tl-red'}"></span> ${L.rep_debt_q}</h3><p>${L.rep_debt_a.replace('{ratio}', debtRatio).replace('{status}', debtStatus)}</p></div><div class="mgmt-card"><h3><span class="traffic-light ${s.cfOp>0?'tl-green':'tl-red'}"></span> ${L.rep_where_q}</h3><p>${L.rep_where_a.replace('{direction}', cfDirection).replace('{net}', fmt(Math.abs(s.cfNet)))}</p></div>`; } catch(e) { showToast(i18n[currentLang].error, 'error'); } finally { loadingMsg.style.display = 'none'; } }
         
-        async function exportToExcel() { 
-            loadingMsg.style.display = 'block'; 
-            try {
-                const y = document.getElementById('repYear').value; const t = document.getElementById('repType').value; const n = document.getElementById('repNum').value; const data = await fetchDataFromCloud(getKey(y,t,n)); if(!data) { showToast(i18n[currentLang].no_data_err, 'warning'); return; } const s = getFinancialSummary(data); const repText = [["Zad Al-Joud Report"], [], ["Question", "Answer"], [i18n[currentLang].rep_profit_q, `Profit: ${fmt(s.np)}`], [i18n[currentLang].rep_cash_q, `Cash: ${fmt(s.cfEnd)}`], [i18n[currentLang].rep_debt_q, `Ratio: ${s.ta?(s.tl/s.ta*100).toFixed(1):0}%`], [i18n[currentLang].rep_where_q, `CF: ${fmt(s.cfNet)}`]]; const ws = XLSX.utils.aoa_to_sheet(repText); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Report"); XLSX.writeFile(wb, `Report_${y}.xlsx`);
-            } catch(e) { 
-                showToast(i18n[currentLang].error, 'error'); 
-            } finally {
-                loadingMsg.style.display = 'none';
-            }
-        }
+        async function exportToExcel() { loadingMsg.style.display = 'block'; try { const y = document.getElementById('repYear').value; const t = document.getElementById('repType').value; const n = document.getElementById('repNum').value; const data = await fetchDataFromCloud(getKey(y,t,n)); if(!data) { showToast(i18n[currentLang].no_data_err, 'warning'); return; } const s = getFinancialSummary(data); const repText = [["Zad Al-Joud Report"], [], ["Question", "Answer"], [i18n[currentLang].rep_profit_q, `Profit: ${fmt(s.np)}`], [i18n[currentLang].rep_cash_q, `Cash: ${fmt(s.cfEnd)}`], [i18n[currentLang].rep_debt_q, `Ratio: ${s.ta?(s.tl/s.ta*100).toFixed(1):0}%`], [i18n[currentLang].rep_where_q, `CF: ${fmt(s.cfNet)}`]]; const ws = XLSX.utils.aoa_to_sheet(repText); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Report"); XLSX.writeFile(wb, `Report_${y}.xlsx`); } catch(e) { showToast(i18n[currentLang].error, 'error'); } finally { loadingMsg.style.display = 'none'; } }
 
         function downloadTemplate() { const L = i18n[currentLang]; const headers = [L.nav_income, L.cogs, L.item, L.amount, L.noncash_q, L.type]; const examples = [ [L.nav_income, L.revenues, "Product A", 50000, "FALSE", ""], [L.nav_income, L.cogs, "Raw Materials", 20000, "FALSE", ""], [L.nav_income, L.opex, "Salaries", 10000, "FALSE", ""], [L.nav_income, L.dep, "Equip Dep", 2000, "TRUE", ""], [L.nav_income, L.tax, "Zakat", 1000, "FALSE", ""], [L.nav_balance, L.ca, "Bank", 30000, "", ""], [L.nav_balance, L.nca, "Building", 100000, "", "fixed"], [L.nav_balance, L.nca, "Acc Dep", 5000, "", "acc_dep"], [L.nav_balance, L.liab, "Suppliers", 15000, "", ""], [L.nav_balance, L.eq, "Capital", 200000, "", ""], [L.nav_cashflow, L.cf_op_total, "Collections", 45000, "", ""], [L.nav_cashflow, L.cf_inv_total, "Purchase", 5000, "", ""], [L.nav_cashflow, L.cf_fin_total, "Loans", 3000, "", ""], [L.nav_cashflow, L.beg_period, "Opening Balance", 10000, "", ""] ]; const ws = XLSX.utils.aoa_to_sheet([headers, ...examples]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Template"); XLSX.writeFile(wb, "Zad_AlJoud_Template.xlsx"); }
 
-        async function uploadExcel(event) { 
-            const file = event.target.files[0]; if (!file) return; 
-            loadingMsg.style.display = 'block'; 
-            const reader = new FileReader(); 
-            reader.onload = async (e) => { 
-                try { 
-                    const data = new Uint8Array(e.target.result); const workbook = XLSX.read(data, { type: 'array' }); const sheet = workbook.Sheets[workbook.SheetNames[0]]; const rows = XLSX.utils.sheet_to_json(sheet); let inc = { rev: [], cogs: [], opex: [], dep: [], tax: [] }; let bal = { ca: [], nca: [], liab: [], eq: [] }; let cf = { op: [], inv: [], fin: [], beg: 0 }; const L = i18n[currentLang]; rows.forEach(row => { const sheetName = row[L.nav_income] || row[L.nav_balance] || row[L.nav_cashflow]; const category = row[L.cogs] || row[L.revenues] || row[L.opex] || row[L.dep] || row[L.tax] || row[L.ca] || row[L.nca] || row[L.liab] || row[L.eq] || row[L.cf_op_total] || row[L.cf_inv_total] || row[L.cf_fin_total] || row[L.beg_period]; const name = row[L.item]; const amount = row[L.amount] || 0; const isNonCash = row[L.noncash_q] === true || row[L.noncash_q] === 'TRUE'; const assetType = row[L.type] || 'other'; if (!name && !category) return; const itemObj = { name: name || category, amount, isNonCash, assetType }; if(sheetName === L.nav_income || category === L.revenues || category === L.cogs || category === L.opex || category === L.dep || category === L.tax) { if(category === L.revenues) inc.rev.push(itemObj); else if(category === L.cogs) inc.cogs.push(itemObj); else if(category === L.opex) inc.opex.push(itemObj); else if(category === L.dep) inc.dep.push(itemObj); else if(category === L.tax) inc.tax.push(itemObj); } else if(sheetName === L.nav_balance || category === L.ca || category === L.nca || category === L.liab || category === L.eq) { if(category === L.ca) bal.ca.push(itemObj); else if(category === L.nca) bal.nca.push(itemObj); else if(category === L.liab) bal.liab.push(itemObj); else if(category === L.eq) bal.eq.push(itemObj); } else if(sheetName === L.nav_cashflow || category === L.cf_op_total || category === L.cf_inv_total || category === L.cf_fin_total || category === L.beg_period) { if(category === L.beg_period) cf.beg = amount; else if(category === L.cf_op_total) cf.op.push({name: itemObj.name, amount}); else if(category === L.cf_inv_total) cf.inv.push({name: itemObj.name, amount}); else if(category === L.cf_fin_total) cf.fin.push({name: itemObj.name, amount}); } }); const finalData = { inc, bal, cf }; const key = getCurrentKey(); await setDoc(doc(db, "financial_periods", key), finalData); await loadPeriodData(); showToast(i18n[currentLang].saved, 'success'); 
-                } catch (err) { 
-                    console.error(err); showToast(i18n[currentLang].error, 'error'); 
-                } finally { 
-                    loadingMsg.style.display = 'none'; 
-                    event.target.value = ''; 
-                } 
-            }; 
-            reader.readAsArrayBuffer(file); 
-        }
+        async function uploadExcel(event) { const file = event.target.files[0]; if (!file) return; loadingMsg.style.display = 'block'; const reader = new FileReader(); reader.onload = async (e) => { try { const data = new Uint8Array(e.target.result); const workbook = XLSX.read(data, { type: 'array' }); const sheet = workbook.Sheets[workbook.SheetNames[0]]; const rows = XLSX.utils.sheet_to_json(sheet); let inc = { rev: [], cogs: [], opex: [], dep: [], tax: [] }; let bal = { ca: [], nca: [], liab: [], eq: [] }; let cf = { op: [], inv: [], fin: [], beg: 0 }; const L = i18n[currentLang]; rows.forEach(row => { const sheetName = row[L.nav_income] || row[L.nav_balance] || row[L.nav_cashflow]; const category = row[L.cogs] || row[L.revenues] || row[L.opex] || row[L.dep] || row[L.tax] || row[L.ca] || row[L.nca] || row[L.liab] || row[L.eq] || row[L.cf_op_total] || row[L.cf_inv_total] || row[L.cf_fin_total] || row[L.beg_period]; const name = row[L.item]; const amount = row[L.amount] || 0; const isNonCash = row[L.noncash_q] === true || row[L.noncash_q] === 'TRUE'; const assetType = row[L.type] || 'other'; if (!name && !category) return; const itemObj = { name: name || category, amount, isNonCash, assetType }; if(sheetName === L.nav_income || category === L.revenues || category === L.cogs || category === L.opex || category === L.dep || category === L.tax) { if(category === L.revenues) inc.rev.push(itemObj); else if(category === L.cogs) inc.cogs.push(itemObj); else if(category === L.opex) inc.opex.push(itemObj); else if(category === L.dep) inc.dep.push(itemObj); else if(category === L.tax) inc.tax.push(itemObj); } else if(sheetName === L.nav_balance || category === L.ca || category === L.nca || category === L.liab || category === L.eq) { if(category === L.ca) bal.ca.push(itemObj); else if(category === L.nca) bal.nca.push(itemObj); else if(category === L.liab) bal.liab.push(itemObj); else if(category === L.eq) bal.eq.push(itemObj); } else if(sheetName === L.nav_cashflow || category === L.cf_op_total || category === L.cf_inv_total || category === L.cf_fin_total || category === L.beg_period) { if(category === L.beg_period) cf.beg = amount; else if(category === L.cf_op_total) cf.op.push({name: itemObj.name, amount}); else if(category === L.cf_inv_total) cf.inv.push({name: itemObj.name, amount}); else if(category === L.cf_fin_total) cf.fin.push({name: itemObj.name, amount}); } }); const finalData = { inc, bal, cf }; const key = getCurrentKey(); await setDoc(doc(db, "financial_periods", key), finalData); await loadPeriodData(); showToast(i18n[currentLang].saved, 'success'); } catch (err) { console.error(err); showToast(i18n[currentLang].error, 'error'); } finally { loadingMsg.style.display = 'none'; event.target.value = ''; } }; reader.readAsArrayBuffer(file); }
 
-        // NEW: FINANCIAL STATEMENTS LOGIC
+        // NEW: PREMIUM FINANCIAL STATEMENTS LOGIC
         async function generateFS() {
             loadingMsg.style.display = 'block';
             try {
@@ -694,7 +538,7 @@
                 const comp3 = getFinancialSummary(comp3Data);
 
                 if (!base) {
-                    document.getElementById('fsPrintArea').innerHTML = `<div style="text-align:center; color:#ef4444; padding:40px;">لا توجد بيانات للفترة الأساسية</div>`;
+                    document.getElementById('fsPrintArea').innerHTML = `<div style="text-align:center; color:#ef4444; padding:80px 40px; font-size: 18px;">لا توجد بيانات للفترة الأساسية</div>`;
                     return;
                 }
 
@@ -702,13 +546,13 @@
                 const cols = [L.item, `${y}`, c1, c2, c3].filter((c, i) => i < 2 || (i===2 && comp1) || (i===3 && comp2) || (i===4 && comp3));
                 
                 function buildTable(title, rowsDef) {
-                    let html = `<div class="fs-section"><h3>${title}</h3><table class="fs-table"><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
+                    let html = `<div class="fs-card"><h3>${title}</h3><table class="fs-table"><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
                     rowsDef.forEach(row => {
-                        let cls = row.isTotal ? ' class="total-fs"' : (row.isSub ? ' class="subheader"' : '');
-                        html += `<tr${cls}><td>${row.name}</td><td>${fmt(base[row.key])}</td>`;
-                        if(comp1) html += `<td>${fmt(comp1[row.key])}</td>`;
-                        if(comp2) html += `<td>${fmt(comp2[row.key])}</td>`;
-                        if(comp3) html += `<td>${fmt(comp3[row.key])}</td>`;
+                        let cls = row.isTotal ? 'total-fs' : (row.isSub ? 'subheader' : '');
+                        html += `<tr class="${cls}"><td class="item-name">${row.name}</td><td class="item-val">${fmt(base[row.key])}</td>`;
+                        if(comp1) html += `<td class="item-val">${fmt(comp1[row.key])}</td>`;
+                        if(comp2) html += `<td class="item-val">${fmt(comp2[row.key])}</td>`;
+                        if(comp3) html += `<td class="item-val">${fmt(comp3[row.key])}</td>`;
                         html += `</tr>`;
                     });
                     html += `</tbody></table></div>`;
@@ -756,6 +600,8 @@
 
         window.exportFSPDF = function() {
             const element = document.getElementById('fsPrintArea');
+            element.classList.add('pdf-export-mode'); // Apply white theme for PDF
+            
             const opt = {
                 margin:       10,
                 filename:     'Financial_Statements.pdf',
@@ -763,7 +609,12 @@
                 html2canvas:  { scale: 2, useCORS: true },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
-            html2pdf().set(opt).from(element).save();
+            
+            html2pdf().set(opt).from(element).save().then(() => {
+                element.classList.remove('pdf-export-mode'); // Revert to dark theme
+            }).catch(() => {
+                element.classList.remove('pdf-export-mode');
+            });
         }
 
         window.exportFSExcel = function() {
