@@ -366,7 +366,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, getDocs, collection, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, getDocs, collection, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBR8OnJH_AVVA3D7Q2JOCRylsy0Vfw2cgE",
@@ -388,7 +388,6 @@
             return Number(num).toLocaleString('en-US'); 
         }
 
-        // إزالة HTML خطرة من إدخال المستخدم — حماية من XSS
         function escapeHtml(str) {
             if (typeof str !== 'string') return '';
             const div = document.createElement('div');
@@ -408,7 +407,6 @@
             }, 4000);
         }
 
-        // حوار تأكيد مخصص بدلاً من confirm() الأصلي
         function showConfirm(message) {
             return new Promise((resolve) => {
                 const overlay = document.createElement('div');
@@ -429,7 +427,6 @@
             });
         }
 
-        // Debounce — منع التنفيذ المتكرر للحسابات
         function debounce(fn, delay = 150) {
             let timer = null;
             return function(...args) {
@@ -545,7 +542,6 @@
                 const hashArray = Array.from(new Uint8Array(hashBuffer));
                 return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
             } catch(e) {
-                // Fallback بسيط إذا لم يتوفر crypto.subtle
                 return btoa(password + '_zad_salt_2024');
             }
         }
@@ -561,7 +557,6 @@
             document.getElementById('loginBtn').innerText = '...';
             
             try {
-                // إنشاء حساب المدير الافتراضي إذا لم يكن موجوداً
                 if(username === 'admin') { 
                     try { 
                         const adminDoc = await getDoc(doc(db, "app_users", "admin")); 
@@ -581,13 +576,11 @@
                     const userData = userDoc.data();
                     let passwordMatch = false;
                     
-                    // دعم كلمات المرور المشفرة وغير المشفرة للتوافق مع البيانات القديمة
                     if (userData.hashed) {
                         const hashedInput = await hashPassword(password);
                         passwordMatch = userData.password === hashedInput;
                     } else {
                         passwordMatch = userData.password === password;
-                        // ترقية كلمة المرور للتشفير
                         if (passwordMatch) {
                             const hashedPass = await hashPassword(password);
                             await setDoc(doc(db, "app_users", username), { ...userData, password: hashedPass, hashed: true });
@@ -689,7 +682,6 @@
             } 
         }
         
-        // إصلاح حرج: تمرير العنصر صراحة بدلاً من الاعتماد على event الضمني
         function showScreen(id, navElement) { 
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); 
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); 
@@ -738,7 +730,6 @@
         function addRow(tableId, type='none', isNonCashChecked=false, name="", amount=0, assetTypeVal='other') { 
             const tbody = document.getElementById(tableId).querySelector('tbody'); 
             const tr = document.createElement('tr'); 
-            // إصلاح XSS: استخدام escapeHtml لاسم البند
             const safeName = escapeHtml(name);
             let cells = `<td><input type="text" style="width:100%; background:var(--bg-dark); color:var(--text-main); border-color:var(--border);" value="${safeName}"></td><td><input type="number" style="width:100%; background:var(--bg-dark); color:var(--text-main); border-color:var(--border);" value="${amount}" onchange="window.calculateLocal()"></td>`; 
             if(type==='noncash') cells += `<td class="checkbox-group"><input type="checkbox" onchange="window.calculateLocal()" ${isNonCashChecked?'checked':''}> <span data-i18n="noncash_q">${i18n[currentLang].noncash_q}</span></td>`; 
@@ -748,7 +739,6 @@
             tbody.appendChild(tr); 
         }
 
-        // حذف صف مع تأكيد
         async function deleteRow(btn) {
             const L = i18n[currentLang];
             if (await showConfirm(L.delete_row_q)) {
@@ -890,7 +880,6 @@
         }
 
         // ============ الحسابات المحلية ============
-        // استخدام debounce لمنع التنفيذ المتكرر
         const calculateLocal = debounce(function() { 
             const rev = sumTable('tbl_rev',true), cogs = sumTable('tbl_cogs',true), gp = rev.total-cogs.total, opex = sumTable('tbl_opex',true), ebitda = gp-opex.total, dep = sumTable('tbl_dep',true), ebit = ebitda-dep.total, tax = sumTable('tbl_tax',true), np = ebit-tax.total, totalNonCash = rev.nonCash+cogs.nonCash+opex.nonCash+dep.nonCash+tax.nonCash; 
             document.getElementById('val_gp').innerText=fmt(gp); document.getElementById('val_ebitda').innerText=fmt(ebitda); document.getElementById('val_ebit').innerText=fmt(ebit); document.getElementById('val_np').innerText=fmt(np); 
@@ -1039,7 +1028,6 @@
                 const pType = document.getElementById('selPeriodType').value; 
                 const pNum = document.getElementById('selPeriodNum').value; 
                 
-                // جلب البيانات بالتوازي
                 const [baseData, d1Data, d2Data, d3Data] = await Promise.all([
                     fetchDataFromCloud(getKey(baseYear, pType, pNum)),
                     fetchDataFromCloud(getKey(c1, pType, pNum)),
@@ -1153,86 +1141,170 @@
             } 
         }
 
-        // ============ قالب Excel ============
+        // ============ قالب Excel الزمني الممتد ============
         function downloadTemplate() { 
-            const L = i18n[currentLang]; 
-            const headers = [L.nav_income, L.cogs, L.item, L.amount, L.noncash_q, L.type]; 
+            const L = i18n[currentLang];
+            
+            // إنشاء الأعمدة الزمنية من 1/2024 إلى 12/2026
+            const dateHeaders = [];
+            for (let y = 2024; y <= 2026; y++) {
+                for (let m = 1; m <= 12; m++) {
+                    dateHeaders.push(`${m}/${y}`);
+                }
+            }
+            
+            const headers = ['البند', 'نقدي / غير نقدي', 'التصنيف', 'القائمة', ...dateHeaders]; 
+            
+            // أمثلة توضيحية للهيكل الجديد
             const examples = [ 
-                [L.nav_income, L.revenues, "Product A", 50000, "FALSE", ""], 
-                [L.nav_income, L.cogs, "Raw Materials", 20000, "FALSE", ""], 
-                [L.nav_income, L.opex, "Salaries", 10000, "FALSE", ""], 
-                [L.nav_income, L.dep, "Equip Dep", 2000, "TRUE", ""], 
-                [L.nav_income, L.tax, "Zakat", 1000, "FALSE", ""], 
-                [L.nav_balance, L.ca, "Bank", 30000, "", ""], 
-                [L.nav_balance, L.nca, "Building", 100000, "", "fixed"], 
-                [L.nav_balance, L.nca, "Acc Dep", 5000, "", "acc_dep"], 
-                [L.nav_balance, L.liab, "Suppliers", 15000, "", ""], 
-                [L.nav_balance, L.eq, "Capital", 200000, "", ""], 
-                [L.nav_cashflow, L.cf_op_total, "Collections", 45000, "", ""], 
-                [L.nav_cashflow, L.cf_inv_total, "Purchase", 5000, "", ""], 
-                [L.nav_cashflow, L.cf_fin_total, "Loans", 3000, "", ""], 
-                [L.nav_cashflow, L.beg_period, "Opening Balance", 10000, "", ""] 
+                ["مبيعات وجبات", "نقدي", "إيرادات", "قائمة دخل", 50000, 55000, 60000], 
+                ["مواد خام", "نقدي", "تكلفة بضاعة", "قائمة دخل", 20000, 22000, 25000], 
+                ["رواتب الموظفين", "نقدي", "تكاليف تشغيلية", "قائمة دخل", 10000, 10000, 10000], 
+                ["إهلاك معدات", "غير نقدي", "إهلاك", "قائمة دخل", 2000, 2000, 2000], 
+                ["زكاة", "نقدي", "فوائد وزكاة", "قائمة دخل", 1000, 1100, 1200], 
+                ["البنك الأهلي", "نقدي", "أصول متداولة", "مركز مالي", 30000, 35000, 40000], 
+                ["مبنى المطعم", "نقدي", "أصول غير متداولة", "مركز مالي", 100000, 100000, 100000], 
+                ["موردين", "نقدي", "التزامات", "مركز مالي", 15000, 17000, 18000], 
+                ["رأس المال", "نقدي", "حقوق الملكية", "مركز مالي", 200000, 200000, 200000], 
+                ["تحصيلات عملاء", "نقدي", "تشغيلية", "تدفقات نقدية", 48000, 53000, 58000], 
+                ["شراء أصول", "نقدي", "استثمارية", "تدفقات نقدية", -5000, 0, 0], 
+                ["سداد قروض", "نقدي", "تمويلية", "تدفقات نقدية", -3000, -3000, -3000],
+                ["رصيد بداية الفترة", "نقدي", "بداية الفترة", "تدفقات نقدية", 10000, 0, 0] // رصيد أول فترة فقط
             ]; 
+            
             const ws = XLSX.utils.aoa_to_sheet([headers, ...examples]); 
+            
+            // ضبط عرض الأعمدة ليكون مقروءاً
+            ws['!cols'] = headers.map((h, i) => ({ wch: i < 4 ? 20 : 12 }));
+            
             const wb = XLSX.utils.book_new(); 
-            XLSX.utils.book_append_sheet(wb, ws, "Template"); 
-            XLSX.writeFile(wb, "Zad_AlJoud_Template.xlsx"); 
+            XLSX.utils.book_append_sheet(wb, ws, "TimeSeries_Template"); 
+            XLSX.writeFile(wb, "Zad_AlJoud_TimeSeries_Template.xlsx"); 
         }
 
-        // ============ رفع Excel ============
+        // ============ رفع Excel الزمني الممتد ============
         async function uploadExcel(event) { 
             const file = event.target.files[0]; 
             if (!file) return; 
             loadingMsg.style.display = 'block'; 
             const reader = new FileReader(); 
+            
             reader.onload = async (e) => { 
                 try { 
                     const data = new Uint8Array(e.target.result); 
                     const workbook = XLSX.read(data, { type: 'array' }); 
                     const sheet = workbook.Sheets[workbook.SheetNames[0]]; 
-                    const rows = XLSX.utils.sheet_to_json(sheet); 
-                    let inc = { rev: [], cogs: [], opex: [], dep: [], tax: [] }; 
-                    let bal = { ca: [], nca: [], liab: [], eq: [] }; 
-                    let cf = { op: [], inv: [], fin: [], beg: 0 }; 
-                    const L = i18n[currentLang]; 
-                    rows.forEach(row => { 
-                        const sheetName = row[L.nav_income] || row[L.nav_balance] || row[L.nav_cashflow]; 
-                        const category = row[L.cogs] || row[L.revenues] || row[L.opex] || row[L.dep] || row[L.tax] || row[L.ca] || row[L.nca] || row[L.liab] || row[L.eq] || row[L.cf_op_total] || row[L.cf_inv_total] || row[L.cf_fin_total] || row[L.beg_period]; 
-                        const name = row[L.item]; 
-                        const amount = row[L.amount] || 0; 
-                        const isNonCash = row[L.noncash_q] === true || row[L.noncash_q] === 'TRUE'; 
-                        const assetType = row[L.type] || 'other'; 
-                        if (!name && !category) return; 
-                        const itemObj = { name: name || category, amount, isNonCash, assetType }; 
-                        if(sheetName === L.nav_income || category === L.revenues || category === L.cogs || category === L.opex || category === L.dep || category === L.tax) { 
-                            if(category === L.revenues) inc.rev.push(itemObj); 
-                            else if(category === L.cogs) inc.cogs.push(itemObj); 
-                            else if(category === L.opex) inc.opex.push(itemObj); 
-                            else if(category === L.dep) inc.dep.push(itemObj); 
-                            else if(category === L.tax) inc.tax.push(itemObj); 
-                        } else if(sheetName === L.nav_balance || category === L.ca || category === L.nca || category === L.liab || category === L.eq) { 
-                            if(category === L.ca) bal.ca.push(itemObj); 
-                            else if(category === L.nca) bal.nca.push(itemObj); 
-                            else if(category === L.liab) bal.liab.push(itemObj); 
-                            else if(category === L.eq) bal.eq.push(itemObj); 
-                        } else if(sheetName === L.nav_cashflow || category === L.cf_op_total || category === L.cf_inv_total || category === L.cf_fin_total || category === L.beg_period) { 
-                            if(category === L.beg_period) cf.beg = amount; 
-                            else if(category === L.cf_op_total) cf.op.push({name: itemObj.name, amount}); 
-                            else if(category === L.cf_inv_total) cf.inv.push({name: itemObj.name, amount}); 
-                            else if(category === L.cf_fin_total) cf.fin.push({name: itemObj.name, amount}); 
-                        } 
-                    }); 
-                    const finalData = { inc, bal, cf }; 
-                    const key = getCurrentKey(); 
-                    await setDoc(doc(db, "financial_periods", key), finalData); 
-                    await loadPeriodData(); 
-                    showToast(i18n[currentLang].saved, 'success'); 
+                    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" }); // قراءة كمصفوفة مصفوفات للحفاظ على الترتيب
+                    
+                    if (rows.length < 2) { showToast('الملف فارغ أو لا يحتوي على بيانات', 'error'); loadingMsg.style.display='none'; return; }
+                    
+                    const headers = rows[0];
+                    const dateCols = []; // مصفوفة لتخزين الأعمدة التي تحتوي على تواريخ
+                    
+                    // اكتشاف الأعمدة الزمنية (التي تحتوي على /)
+                    headers.forEach((h, idx) => {
+                        if (typeof h === 'string' && h.includes('/')) {
+                            const parts = h.split('/');
+                            const month = parseInt(parts[0]);
+                            const year = parseInt(parts[1]);
+                            if (month > 0 && month <= 12 && year > 2000) {
+                                dateCols.push({ idx, month, year });
+                            }
+                        }
+                    });
+                    
+                    if (dateCols.length === 0) {
+                        showToast('لم يتم العثور على أعمدة زمنية صحيحة (مثل 1/2024)', 'error');
+                        loadingMsg.style.display = 'none'; return;
+                    }
+                    
+                    const periodsData = {}; // كائن يجمع بيانات كل فترة الزمنية
+                    
+                    // دالة لتهيئة هيكل الفترة الفارغ
+                    const initPeriod = () => ({
+                        inc: { rev: [], cogs: [], opex: [], dep: [], tax: [] }, 
+                        bal: { ca: [], nca: [], liab: [], eq: [] }, 
+                        cf: { op: [], inv: [], fin: [], beg: 0 }
+                    });
+                    
+                    // المرور على صفوف البيانات (بدءاً من الصف الثاني)
+                    for (let i = 1; i < rows.length; i++) { 
+                        const row = rows[i]; 
+                        const itemName = (row[0] || "").toString().trim();
+                        const isNonCashStr = (row[1] || "").toString().trim().toLowerCase();
+                        const category = (row[2] || "").toString().trim();
+                        const statement = (row[3] || "").toString().trim();
+                        
+                        if (!itemName && !category) continue; // تجاهل الصفوف الفارغة
+                        
+                        const isNonCash = isNonCashStr === 'غير نقدي' || isNonCashStr === 'true' || isNonCashStr === '1';
+                        
+                        // المرور أفقياً على أعمدة التواريخ المكتشفة
+                        dateCols.forEach(col => {
+                            const amount = parseFloat(row[col.idx]) || 0;
+                            if (amount === 0) return; // تجاهل الأصفار لتوفير المساحة
+                            
+                            const key = getKey(col.year, 'M', col.month);
+                            if (!periodsData[key]) periodsData[key] = initPeriod();
+                            const pData = periodsData[key];
+                            
+                            // توزيع البيانات ذكياً بناءً على التصنيف والقائمة
+                            const catLower = category.toLowerCase();
+                            const statLower = statement.toLowerCase();
+                            
+                            if (statLower.includes('دخل') || statLower.includes('income')) {
+                                if (catLower.includes('إيراد') || catLower.includes('revenue')) pData.inc.rev.push({ name: itemName, amount, isNonCash }); 
+                                else if (catLower.includes('تكلفة') || catLower.includes('cogs')) pData.inc.cogs.push({ name: itemName, amount, isNonCash }); 
+                                else if (catLower.includes('تشغيل') || catLower.includes('opex')) pData.inc.opex.push({ name: itemName, amount, isNonCash }); 
+                                else if (catLower.includes('إهلاك') || catLower.includes('dep')) pData.inc.dep.push({ name: itemName, amount, isNonCash: true }); 
+                                else if (catLower.includes('زكاة') || catLower.includes('tax')) pData.inc.tax.push({ name: itemName, amount, isNonCash }); 
+                            } 
+                            else if (statLower.includes('مركز') || statLower.includes('balance')) {
+                                if (catLower.includes('متداولة') || catLower.includes('current')) pData.bal.ca.push({ name: itemName, amount }); 
+                                else if (catLower.includes('غير متداولة') || catLower.includes('non-current')) pData.bal.nca.push({ name: itemName, amount, assetType: 'other' }); 
+                                else if (catLower.includes('التزام') || catLower.includes('liab')) pData.bal.liab.push({ name: itemName, amount }); 
+                                else if (catLower.includes('ملكية') || catLower.includes('equity')) pData.bal.eq.push({ name: itemName, amount }); 
+                            } 
+                            else if (statLower.includes('تدفقات') || statLower.includes('cashflow')) {
+                                if (catLower.includes('بداية') || catLower.includes('beginning')) pData.cf.beg = amount; 
+                                else if (catLower.includes('تشغيل') || catLower.includes('operating')) pData.cf.op.push({ name: itemName, amount }); 
+                                else if (catLower.includes('استثمار') || catLower.includes('investing')) pData.cf.inv.push({ name: itemName, amount }); 
+                                else if (catLower.includes('تمويل') || catLower.includes('financing')) pData.cf.fin.push({ name: itemName, amount }); 
+                            }
+                        }); 
+                    } 
+                    
+                    // الحفظ الدفعي (Batch Write) لجميع الفترات المكتشفة دفعة واحدة
+                    const batch = writeBatch(db);
+                    let count = 0;
+                    
+                    for (const key in periodsData) {
+                        const docRef = doc(db, "financial_periods", key);
+                        batch.set(docRef, periodsData[key]); // استخدم set لاستبدال الفترة بالكامل بالبيانات الجديدة
+                        count++;
+                    }
+                    
+                    if (count > 0) {
+                        await batch.commit();
+                        showToast(`تم رفع بيانات ${count} فترة زمنية بنجاح!`, 'success');
+                        // تحميل أول فترة من الفترات المرفوعة لعرضها فوراً
+                        const firstKey = Object.keys(periodsData)[0];
+                        const parts = firstKey.replace('ZAD_','').split('_');
+                        document.getElementById('selYear').value = parts[0];
+                        document.getElementById('selPeriodType').value = parts[1];
+                        updatePeriodNumbers('selPeriodType','selPeriodNum');
+                        document.getElementById('selPeriodNum').value = parts[2];
+                        await loadPeriodData();
+                    } else {
+                        showToast('لم يتم العثور على مبالغ للرفع في الملف', 'warning');
+                    }
+                    
                 } catch (err) { 
                     console.error(err); 
-                    showToast(i18n[currentLang].error, 'error'); 
+                    showToast('خطأ في رفع الملف: ' + err.message, 'error'); 
                 } finally { 
                     loadingMsg.style.display = 'none'; 
-                    event.target.value = ''; 
+                    event.target.value = ''; // إعادة تعيين حقل الملف
                 } 
             }; 
             reader.readAsArrayBuffer(file); 
@@ -1246,7 +1318,6 @@
                 const t = document.getElementById('fsType').value;
                 const n = document.getElementById('fsNum').value;
                 
-                // إصلاح: دعم اختيار فترة مختلفة لكل مقارنة
                 const c1 = document.getElementById('fsComp1').value;
                 const c1t = document.getElementById('fsComp1Type').value;
                 const c1n = document.getElementById('fsComp1Num').value;
@@ -1257,7 +1328,6 @@
                 const c3t = document.getElementById('fsComp3Type').value;
                 const c3n = document.getElementById('fsComp3Num').value;
 
-                // جلب البيانات بالتوازي
                 const [baseData, comp1Data, comp2Data, comp3Data] = await Promise.all([
                     fetchDataFromCloud(getKey(y, t, n)),
                     fetchDataFromCloud(getKey(c1, c1t, c1n)),
@@ -1277,7 +1347,6 @@
 
                 const L = i18n[currentLang];
                 
-                // تسميات الأعمدة مع تفاصيل الفترة
                 const periodLabel = (yr, tp, nm) => {
                     const typeName = tp==='Y'?'سنوي':tp==='Q'?'ربع سنوي':tp==='M'?'شهري':'نصف سنوي';
                     return `${yr} ${typeName} ${nm !== '1' || tp === 'Y' ? nm : ''}`;
@@ -1398,11 +1467,9 @@
         updatePeriodNumbers('fsComp3Type','fsComp3Num');
         applyTranslations(); 
         
-        // دعم دخول بالمفتاح Enter
         document.getElementById('loginPass').addEventListener('keydown', (e) => { if(e.key === 'Enter') doLogin(); });
         document.getElementById('loginUser').addEventListener('keydown', (e) => { if(e.key === 'Enter') document.getElementById('loginPass').focus(); });
         
-        // دعم التنقل بلوحة المفاتيح في القائمة الجانبية
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('keydown', (e) => { 
                 if(e.key === 'Enter' || e.key === ' ') { 
